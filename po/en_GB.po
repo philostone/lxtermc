@@ -1,0 +1,7 @@
+#: src/lxtermc.c:26
+msgid "Hello gtk4"
+msgstr "Hello gt4 in brittish"
+
+#: src/lxtermc.c:29
+msgid "Exit"
+msgstr "Exit in brittish"

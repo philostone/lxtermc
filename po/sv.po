@@ -1,0 +1,7 @@
+#: src/lxtermc.c:26
+msgid "Hello gtk4"
+msgstr "Hej gtk4"
+
+#: src/lxtermc.c:29
+msgid "Exit"
+msgstr "Avsluta"
