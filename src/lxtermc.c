@@ -14,7 +14,7 @@ static void
 activate(GtkApplication *app, gpointer data)
 {
 	GtkWidget *window = gtk_application_window_new(app);
-	gtk_window_set_title(GTK_WINDOW(window), "Welcome!");
+	gtk_window_set_title(GTK_WINDOW(window), _("Welcome!"));
 	gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
 
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
@@ -37,15 +37,20 @@ activate(GtkApplication *app, gpointer data)
 int
 main(int argc, char **argv)
 {
-	setlocale(LC_ALL, "sv_SE");
-//	bindtextdomain(GETTEXT_PACKAGE, NULL);
+	print_hello(NULL, NULL);
+//#ifdef ENABLE_NLS
+	fprintf(stderr, "Setting locale (NLS is enabled)\n");
+	setlocale(LC_ALL, "");
+	fprintf(stderr, "setting locale to %s\n", setlocale(LC_MESSAGES, "sv_SE.utf8"));
+	bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
-
-	print_hello(NULL, NULL);
-	fprintf(stderr, "current text domain: %s\n", textdomain(NULL));
-	fprintf(stderr, "current base dir   : %s\n", bindtextdomain(GETTEXT_PACKAGE, NULL));
-	fprintf(stderr, "current locale     : %s\n", setlocale(LC_ALL, NULL));
+//#endif
+	fprintf(stderr, "current text domain : %s\n", textdomain(NULL));
+	fprintf(stderr, "current codeset     : %s\n", bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
+	fprintf(stderr, "current base dir    : %s\n", bindtextdomain(GETTEXT_PACKAGE, NULL));
+	fprintf(stderr, "current msg locale  : %s\n", setlocale(LC_MESSAGES, NULL));
+	fprintf(stderr, "gettext('Exit')     : %s\n", gettext("Exit"));
 
 	// automatic resources:
 	// load GtkBuilder resource from gtk/menus.ui

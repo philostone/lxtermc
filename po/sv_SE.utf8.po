@@ -1,15 +1,15 @@
 #: src/lxtermc.c:10
 msgid "Hello!\n"
-msgstr "Hello in brittish\n"
+msgstr "Hej!\n"
 
 #: src/lxtermc.c:17
 msgid "Welcome!"
-msgstr "Welcome in brittish"
+msgstr "Vlkommen!"
 
 #: src/lxtermc.c:26
 msgid "Hello gtk4"
-msgstr "Hello gt4 in brittish"
+msgstr "Hej gtk4"
 
 #: src/lxtermc.c:29 src/lxtermc.c:52
 msgid "Exit"
-msgstr "Exit in brittish"
+msgstr "Avsluta"

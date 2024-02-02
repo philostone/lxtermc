@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lxtermc-meson\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-01 14:30+0100\n"
+"POT-Creation-Date: 2024-02-02 13:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,10 +17,18 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: src/lxtermc.c:10
+msgid "Hello!\n"
+msgstr ""
+
+#: src/lxtermc.c:17
+msgid "Welcome!"
+msgstr ""
+
 #: src/lxtermc.c:26
 msgid "Hello gtk4"
 msgstr ""
 
-#: src/lxtermc.c:29
+#: src/lxtermc.c:29 src/lxtermc.c:52
 msgid "Exit"
 msgstr ""
