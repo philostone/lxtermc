@@ -1,15 +1,35 @@
-#: src/lxtermc.c:10
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the lxtermc-meson package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: lxtermc-meson\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-02-04 19:12+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/lxtermc.c:12 src/lxtermc.c:55
+#, c-format
 msgid "Hello!\n"
 msgstr "Hej!\n"
 
-#: src/lxtermc.c:17
+#: src/lxtermc.c:19 src/lxtermc.c:56
 msgid "Welcome!"
-msgstr "Vlkommen!"
+msgstr "Välkommen"
 
-#: src/lxtermc.c:26
+#: src/lxtermc.c:28 src/lxtermc.c:57
 msgid "Hello gtk4"
 msgstr "Hej gtk4"
 
-#: src/lxtermc.c:29 src/lxtermc.c:52
+#: src/lxtermc.c:31 src/lxtermc.c:58
 msgid "Exit"
 msgstr "Avsluta"

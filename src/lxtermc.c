@@ -4,6 +4,8 @@
 #include <locale.h>
 #include <stdio.h>
 
+#define APPLICATION_ID "com.github.philostone.lxtermc-meson"
+
 static void
 print_hello(GtkWidget *w, gpointer data)
 {
@@ -37,7 +39,6 @@ activate(GtkApplication *app, gpointer data)
 int
 main(int argc, char **argv)
 {
-	print_hello(NULL, NULL);
 //#ifdef ENABLE_NLS
 	fprintf(stderr, "Setting locale (NLS is enabled)\n");
 	setlocale(LC_ALL, "");
@@ -46,19 +47,26 @@ main(int argc, char **argv)
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
 //#endif
-	fprintf(stderr, "current text domain : %s\n", textdomain(NULL));
-	fprintf(stderr, "current codeset     : %s\n", bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
-	fprintf(stderr, "current base dir    : %s\n", bindtextdomain(GETTEXT_PACKAGE, NULL));
-	fprintf(stderr, "current msg locale  : %s\n", setlocale(LC_MESSAGES, NULL));
-	fprintf(stderr, "gettext('Exit')     : %s\n", gettext("Exit"));
+	print_hello(NULL, NULL);
+	fprintf(stderr, "current text domain   : %s\n", textdomain(NULL));
+	fprintf(stderr, "current codeset       : %s\n", bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
+	fprintf(stderr, "current base dir      : %s\n", bindtextdomain(GETTEXT_PACKAGE, NULL));
+	fprintf(stderr, "current msg locale    : %s\n", setlocale(LC_MESSAGES, NULL));
+	fprintf(stderr, "gettext('Hello!\n')   : %s\n", gettext("Hello!\n"));
+	fprintf(stderr, "gettext('Welcome!')   : %s\n", gettext("Welcome!"));
+	fprintf(stderr, "gettext('Hello gtk4') : %s\n", gettext("Hello gtk4"));
+	fprintf(stderr, "gettext('Exit')       : %s\n", gettext("Exit"));
 
 	// automatic resources:
 	// load GtkBuilder resource from gtk/menus.ui
-	GtkApplication *app = gtk_application_new(NULL, G_APPLICATION_DEFAULT_FLAGS);
+	gtk_disable_setlocale();
+	GtkApplication *app = gtk_application_new(APPLICATION_ID, G_APPLICATION_SEND_ENVIRONMENT);
 	g_signal_connect(app, "activate", G_CALLBACK(activate), NULL);
 
 	int status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);
+
+	print_hello(NULL, NULL);
 
 	return status;
 }

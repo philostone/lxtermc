@@ -7,4 +7,7 @@ add_project_arguments(
 	msg_fmt.format(get_option('prefix') / get_option('localedir')),
 	language: 'c'
 )
-i18n.gettext(meson.project_name())
+i18n.gettext(meson.project_name(),
+	preset: 'glib',
+	args: '--from-code=UTF-8'
+)
