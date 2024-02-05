@@ -16,7 +16,7 @@ static char lxtermc_usage[] = {
 	"\n"
 	"  lxtermc [options ...]\n"
 	"\n"
-	"options: [ --long_opt <arg> | --long_opt=<arg> | -o <arg> ]\n"
+	"options: [ -o [<arg>] | --long_opt [<arg>] | --long_opt=<arg> ]\n"
 	"  -c, --config <fname>    use file <fname> instead of user or system config\n"
 	"  -l, --locale <id>       use <id> as locale instead of user's (must be installed)\n"
 };
@@ -39,7 +39,7 @@ lxtermc_option(int argc, char **argv, int *at, const char *so, const char *lo, c
 		strcpy(lx, lo);
 		strcat(lx, "=");
 		if (strncmp(argv[*at], lx, ll) == 0) {
-			if (opt) *opt = argv[*at+ll];
+			if (opt) *opt = argv[*at]+ll;
 			printf("lxtermc: %s=%s\n", lo, (opt) ? *opt : "NULL");
 			return TRUE;
 		}
@@ -66,6 +66,7 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cmdargs)
 		if (lxtermc_option(argc, argv, &at, "-c", "--config", &cmdargs->cfg)) continue;
 		if (lxtermc_option(argc, argv, &at, "-l", "--locale", &cmdargs->locale)) continue;
 
+		printf("\nlxtermc unknown option: %s\n", argv[at]);
 		printf("\n%s\n", lxtermc_usage);
 		return FALSE;
 	}
