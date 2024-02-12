@@ -116,7 +116,7 @@ lxtermc_activate(GApplication *app, gpointer data)
 }
 
 static int
-lxtermc_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
+lxtermc_cmdline(GApplication *app, GApplicationCommandLine *cmdline, cmdargs_t *cmdargs)
 {
 	char *fn = "lxtermc_cmdline()";
 	printf("%s - start\n", fn);
@@ -127,19 +127,13 @@ lxtermc_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 		printf("%s - argument %2d: %s\n", fn, i, argv[i]);
 	}
 
-	cmdargs_t cmdargs;
-	cmdargs.exec = NULL;
-	cmdargs.cfg = NULL;
-	cmdargs.locale = LXTERMC_DEFAULT_LOCALE;
-	if (!lxtermc_args(argc, argv, &cmdargs)) return EXIT_FAILURE;
+	if (!lxtermc_args(argc, argv, cmdargs)) return EXIT_FAILURE;
 
 	setlocale(LC_ALL, "");
-	printf("%s - setting locale to %s\n", fn, setlocale(LC_MESSAGES, cmdargs.locale));
+	printf("%s - setting locale to %s\n", fn, setlocale(LC_MESSAGES, cmdargs->locale));
 	bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
-
-//	print_hello(NULL, NULL);	// test gettext translation
 
 	printf("%s - current msg locale    : %s\n", fn, setlocale(LC_MESSAGES, NULL));
 	printf("%s - current base dir      : %s\n", fn, bindtextdomain(GETTEXT_PACKAGE, NULL));
@@ -158,32 +152,13 @@ lxtermc_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 int
 main(int argc, char **argv)
 {
-	printf("lxtermc - main()\n");
-/*
+	char *fn ="lxtermc - main()";
+	printf("%s\n", fn);
+
 	cmdargs_t cmdargs;
 	cmdargs.exec = NULL;
 	cmdargs.cfg = NULL;
 	cmdargs.locale = LXTERMC_DEFAULT_LOCALE;
-	if (!lxtermc_args(argc, argv, &cmdargs)) return EXIT_FAILURE;
-
-	printf("Setting locale\n");
-	setlocale(LC_ALL, "");
-	printf("setting locale to %s\n", setlocale(LC_MESSAGES, cmdargs.locale));
-	bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
-	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-	textdomain(GETTEXT_PACKAGE);
-
-	print_hello(NULL, NULL);	// test gettext translation
-
-	printf("current msg locale    : %s\n", setlocale(LC_MESSAGES, NULL));
-	printf("current base dir      : %s\n", bindtextdomain(GETTEXT_PACKAGE, NULL));
-	printf("current codeset       : %s\n", bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
-	printf("current text domain   : %s\n", textdomain(NULL));
-	printf("gettext('Hello!\n')   : %s\n", gettext("Hello!\n"));
-	printf("gettext('Welcome!')   : %s\n", gettext("Welcome!"));
-	printf("gettext('Hello gtk4') : %s\n", gettext("Hello gtk4"));
-	printf("gettext('Exit')       : %s\n", gettext("Exit"));
-*/
 
 	// automatic resources:
 	// load GtkBuilder resource from gtk/menus.ui
@@ -194,13 +169,13 @@ main(int argc, char **argv)
 //		G_APPLICATION_HANDLES_COMMAND_LINE);
 
 	GApplication *app = g_application_new(LXTERMC_APP_ID, G_APPLICATION_HANDLES_COMMAND_LINE);
-	g_signal_connect(app, "command-line", G_CALLBACK(lxtermc_cmdline), NULL);
+	g_signal_connect(app, "command-line", G_CALLBACK(lxtermc_cmdline), &cmdargs);
 	g_signal_connect(app, "activate", G_CALLBACK(lxtermc_activate), NULL);
 
 //	int gtk_status = g_application_run(G_APPLICATION(app), 0, NULL);
 	int gtk_status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);
 
-	printf("lxtermc - main() - end! - status: %i\n", gtk_status);
+	printf("%s - end! - status: %i\n", fn, gtk_status);
 	return gtk_status;
 }
