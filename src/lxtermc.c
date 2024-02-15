@@ -9,6 +9,7 @@
 #include <X11/Xlib.h>
 
 #include "lxtermc.h"
+#include "lxtermc-window.h"
 
 static char lxtermc_usage[] = {
 	"lxtermc - is an individually configurable terminal emulator\n"
@@ -28,7 +29,6 @@ static int
 lxtermc_option(int argc, char **argv, int *at, const char *so, const char *lo, char **opt)
 {
 	char *fn = "lxtermc_option()";
-//	printf("lxtermc_option() - start\n");
 
 	// buffer to hold the longest option (including --) plus = and \0
 	char lx[22] = { "" };
@@ -53,7 +53,7 @@ lxtermc_option(int argc, char **argv, int *at, const char *so, const char *lo, c
 	if (!lo && !so) return FALSE;
 	(*at)++;
 	if (opt) *opt = (*at < argc) ? argv[*at] : NULL;
-	printf("%s: %s%s%s\n", fn,
+	g_print("%s: %s%s%s\n", fn,
 		(so) ? so : lo,
 		(*opt) ? ", " : "",
 		(*opt) ? *opt : ""
@@ -64,83 +64,95 @@ lxtermc_option(int argc, char **argv, int *at, const char *so, const char *lo, c
 static int
 lxtermc_args(int argc, char **argv, cmdargs_t *cmdargs)
 {
-	printf("lxtermc_args() - start\n");
+	g_print("lxtermc_args() - start\n");
 	int at = 0;
 	cmdargs->cmd = argv[0];
 	while (++at < argc) {
 		if (lxtermc_option(argc, argv, &at, "-c", "--config", &cmdargs->cfg)) continue;
 		if (lxtermc_option(argc, argv, &at, "-l", "--locale", &cmdargs->locale)) continue;
 
-		printf("\nlxtermc unknown option: %s\n", argv[at]);
-		printf("\n%s\n", lxtermc_usage);
-		printf("lxtermc_args() - end FALSE\n");
+		g_print("\nlxtermc unknown option: %s\n", argv[at]);
+		g_print("\n%s\n", lxtermc_usage);
+		g_print("lxtermc_args() - end FALSE\n");
 		return FALSE;
 	}
-	printf("lxtermc_args() - end TRUE\n");
+	g_print("lxtermc_args() - end TRUE\n");
 	return TRUE;
 }
 
 static void
 print_hello(GtkWidget *w, gpointer data)
 {
-	g_print(_("Hello!\n"));
+	g_print(_("Hello!"));
+	g_print("\n");
+}
+
+static void
+display_locale(GtkWidget *w, gpointer data)
+{
+	char *fn = "display_locale()";
+
+	g_print("%s - current msg locale    : %s\n", fn, setlocale(LC_MESSAGES, NULL));
+	g_print("%s - current base dir      : %s\n", fn, bindtextdomain(GETTEXT_PACKAGE, NULL));
+	g_print("%s - current codeset       : %s\n", fn, bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
+	g_print("%s - current text domain   : %s\n", fn, textdomain(NULL));
+	g_print("%s - gettext('Hello!')     : %s\n", fn, gettext("Hello!"));
+	g_print("%s - gettext('Locale')     : %s\n", fn, gettext("Locale"));
+	g_print("%s - gettext('Welcome!')   : %s\n", fn, gettext("Welcome!"));
+	g_print("%s - gettext('Hello gtk4') : %s\n", fn, gettext("Hello gtk4"));
+	g_print("%s - gettext('Exit')       : %s\n", fn, gettext("Exit"));
 }
 
 static int
 lxtermc_cmdline(GApplication *app, GApplicationCommandLine *cmdline, cmdargs_t *cmdargs)
 {
 	char *fn = "lxtermc_cmdline()";
-	printf("%s - start\n", fn);
+	g_print("%s - start - app: %p\n", fn, (void *)app);
 	gint argc;
 	gchar **argv = g_application_command_line_get_arguments(cmdline, &argc);
 
-	printf("%s - %i arguments\n", fn, argc);
+	g_print("%s - %i arguments\n", fn, argc);
 	for (int i = 0; i < argc; i++) {
-		printf("%s - argument %2d: %s\n", fn, i, argv[i]);
+		g_print("%s - argument %2d: %s\n", fn, i, argv[i]);
 	}
 	if (!lxtermc_args(argc, argv, cmdargs)) return EXIT_FAILURE;
 
 	setlocale(LC_ALL, "");
-	printf("%s - setting locale to %s\n", fn, setlocale(LC_MESSAGES, cmdargs->locale));
+	g_print("%s - setting locale to %s\n", fn, setlocale(LC_MESSAGES, cmdargs->locale));
 	bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
 
-	printf("%s - current msg locale    : %s\n", fn, setlocale(LC_MESSAGES, NULL));
-	printf("%s - current base dir      : %s\n", fn, bindtextdomain(GETTEXT_PACKAGE, NULL));
-	printf("%s - current codeset       : %s\n", fn, bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
-	printf("%s - current text domain   : %s\n", fn, textdomain(NULL));
-	printf("%s - gettext('Hello!\n')   : %s\n", fn, gettext("Hello!\n"));
-	printf("%s - gettext('Welcome!')   : %s\n", fn, gettext("Welcome!"));
-	printf("%s - gettext('Hello gtk4') : %s\n", fn, gettext("Hello gtk4"));
-	printf("%s - gettext('Exit')       : %s\n", fn, gettext("Exit"));
+//	display_locale(NULL, NULL);
 
 	g_strfreev(argv);
 
 	g_application_activate(G_APPLICATION(app));
 
-	printf("%s - end\n", fn);
+	g_print("%s - end\n", fn);
 	return TRUE;
 }
 
+/*
 static void
 lxtermc_startup(GtkApplication *app, gpointer data)
 {
 	char *fn = "lxtermc_startup()";
-	printf("%s - start\n", fn);
+	g_print("%s - start\n", fn);
 
-	printf("%s - end\n", fn);
+	g_print("%s - end\n", fn);
 }
+*/
 
 //lxtermc_activate(GApplication *app, gpointer data)
 static void
 lxtermc_activate(GtkApplication *app, gpointer data)
 {
 	char *fn = "lxtermc_activate()";
-	printf("%s - start\n", fn);
-//	g_application_hold(G_APPLICATION(app));
-	GtkWidget *window = gtk_application_window_new(app);
-//	GtkWidget *window = gtk_window_new();
+	g_print("%s - start - app: %p\n", fn, (void *)app);
+
+	LxtermcWindow *window = lxtermc_window_new(app);
+//	GtkWidget *window = gtk_application_window_new(app);
 	gtk_window_set_title(GTK_WINDOW(window), _("Welcome!"));
 	gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
 
@@ -153,38 +165,41 @@ lxtermc_activate(GtkApplication *app, gpointer data)
 	GtkWidget *hello_button = gtk_button_new_with_label(_("Hello gtk4"));
 	g_signal_connect(hello_button, "clicked", G_CALLBACK(print_hello), NULL);
 
+	GtkWidget *locale_button = gtk_button_new_with_label(_("Locale"));
+	g_signal_connect(locale_button, "clicked", G_CALLBACK(display_locale), NULL);
+
 	GtkWidget *close_button = gtk_button_new_with_label(_("Exit"));
 	g_signal_connect_swapped(close_button, "clicked", G_CALLBACK(gtk_window_destroy), window);
 
 	gtk_box_append(GTK_BOX(box), hello_button);
+	gtk_box_append(GTK_BOX(box), locale_button);
 	gtk_box_append(GTK_BOX(box), close_button);
 	gtk_window_present(GTK_WINDOW(window));
 
-//	g_application_release(G_APPLICATION(app));
-	printf("%s - end\n", fn);
+	g_print("%s - end\n", fn);
 }
 
 static void
 lxtermc_shutdown(GtkApplication *app, gpointer data)
 {
 	char *fn = "lxtermc_shutdown()";
-	printf("%s - start\n", fn);
-	printf("%s - end\n", fn);
+	g_print("%s - start - app: %p\n", fn, (void *)app);
+	g_print("%s - end\n", fn);
 }
 
 static void
 lxtermc_open(GtkApplication *app, gpointer data)
 {
 	char *fn = "lxtermc_open()";
-	printf("%s - start\n", fn);
-	printf("%s - end\n", fn);
+	g_print("%s - start\n", fn);
+	g_print("%s - end\n", fn);
 }
 
 int
 main(int argc, char **argv)
 {
 	char *fn ="lxtermc - main()";
-	printf("%s\n", fn);
+	g_print("%s\n", fn);
 
 	gtk_disable_setlocale();
 
@@ -196,12 +211,12 @@ main(int argc, char **argv)
 	// automatic resources:
 	// load GtkBuilder resource from gtk/menus.ui
 
-//	GtkApplication *app = gtk_application_new(LXTERMC_APP_ID, G_APPLICATION_DEFAULT_FLAGS);
 	GtkApplication *app = gtk_application_new(LXTERMC_APP_ID,
 		G_APPLICATION_HANDLES_COMMAND_LINE);
-//	GApplication *app = g_application_new(LXTERMC_APP_ID, G_APPLICATION_HANDLES_COMMAND_LINE);
 
-	g_signal_connect(app, "startup", G_CALLBACK(lxtermc_startup), NULL);
+	g_print("%s - app: %p\n", fn, (void *)app);
+
+//	g_signal_connect(app, "startup", G_CALLBACK(lxtermc_startup), NULL);
 	g_signal_connect(app, "command-line", G_CALLBACK(lxtermc_cmdline), &cmdargs);
 	g_signal_connect(app, "open", G_CALLBACK(lxtermc_open), NULL);
 	g_signal_connect(app, "activate", G_CALLBACK(lxtermc_activate), NULL);
@@ -210,6 +225,6 @@ main(int argc, char **argv)
 	int gtk_status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);
 
-	printf("%s - end! - status: %i\n", fn, gtk_status);
+	g_print("%s - end! - status: %i\n", fn, gtk_status);
 	return gtk_status;
 }

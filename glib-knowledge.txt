@@ -1,0 +1,4 @@
+GObject inheritance - GObject concepts documentation
+
+base_init
+base_finalize
