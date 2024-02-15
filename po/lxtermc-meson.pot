@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: lxtermc-meson\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-14 15:53+0100\n"
+"POT-Creation-Date: 2024-02-15 10:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,18 +22,19 @@ msgstr ""
 msgid "Hello!"
 msgstr ""
 
-#: src/lxtermc.c:100 src/lxtermc.c:171
+#: src/lxtermc.c:100 src/lxtermc.c:168
 msgid "Locale"
 msgstr ""
 
-#: src/lxtermc.c:101 src/lxtermc.c:155
+#. GtkWidget *window = gtk_application_window_new(app);
+#: src/lxtermc.c:101 src/lxtermc.c:156
 msgid "Welcome!"
 msgstr ""
 
-#: src/lxtermc.c:102 src/lxtermc.c:168
+#: src/lxtermc.c:102 src/lxtermc.c:165
 msgid "Hello gtk4"
 msgstr ""
 
-#: src/lxtermc.c:103 src/lxtermc.c:174
+#: src/lxtermc.c:103 src/lxtermc.c:171
 msgid "Exit"
 msgstr ""

@@ -9,7 +9,7 @@
 #include <X11/Xlib.h>
 
 #include "lxtermc.h"
-#include "lxtermc-window.h"
+#include "lxtermcwin.h"
 
 static char lxtermc_usage[] = {
 	"lxtermc - is an individually configurable terminal emulator\n"
@@ -151,16 +151,16 @@ lxtermc_activate(GtkApplication *app, gpointer data)
 	char *fn = "lxtermc_activate()";
 	g_print("%s - start - app: %p\n", fn, (void *)app);
 
-	LxtermcWindow *window = lxtermc_window_new(app);
+	LxtermcWin *win = lxtermc_win_new(app);
 //	GtkWidget *window = gtk_application_window_new(app);
-	gtk_window_set_title(GTK_WINDOW(window), _("Welcome!"));
-	gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
+	gtk_window_set_title(GTK_WINDOW(win), _("Welcome!"));
+	gtk_window_set_default_size(GTK_WINDOW(win), 300, 200);
 
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
 	gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
 
-	gtk_window_set_child(GTK_WINDOW(window), box);
+	gtk_window_set_child(GTK_WINDOW(win), box);
 
 	GtkWidget *hello_button = gtk_button_new_with_label(_("Hello gtk4"));
 	g_signal_connect(hello_button, "clicked", G_CALLBACK(print_hello), NULL);
@@ -174,7 +174,7 @@ lxtermc_activate(GtkApplication *app, gpointer data)
 	gtk_box_append(GTK_BOX(box), hello_button);
 	gtk_box_append(GTK_BOX(box), locale_button);
 	gtk_box_append(GTK_BOX(box), close_button);
-	gtk_window_present(GTK_WINDOW(window));
+	gtk_window_present(GTK_WINDOW(win));
 
 	g_print("%s - end\n", fn);
 }
@@ -183,7 +183,7 @@ static void
 lxtermc_shutdown(GtkApplication *app, gpointer data)
 {
 	char *fn = "lxtermc_shutdown()";
-	g_print("%s - start - app: %p\n", fn, (void *)app);
+	g_print("%s - start - app: %p - data: %p\n", fn, (void *)app, (void *)data);
 	g_print("%s - end\n", fn);
 }
 
@@ -191,7 +191,7 @@ static void
 lxtermc_open(GtkApplication *app, gpointer data)
 {
 	char *fn = "lxtermc_open()";
-	g_print("%s - start\n", fn);
+	g_print("%s - start - app: %p - data: %p\n", fn, (void *)app, (void *)data);
 	g_print("%s - end\n", fn);
 }
 

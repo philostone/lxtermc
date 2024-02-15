@@ -1,4 +1,8 @@
 
-srcs = ['lxtermc-window.c', 'lxtermc.c']
+srcs = [
+	'lxtermc.c',
+	'lxtermcapp.c',
+	'lxtermcwin.c'
+]
 
-exe = executable('lxtermc-meson', srcs, dependencies: gtkdeps, install: true)
+exe = executable(meson.project_name(), srcs, dependencies: gtkdeps, install: true)

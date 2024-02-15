@@ -1,14 +1,14 @@
 /**/
 
-#ifndef _lxtermcwindow_h_
-#define _lxtermcwindow_h_
+#ifndef _lxtermcapp_h_
+#define _lxtermcapp_h_
 
 #include <glib.h>
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-#define LXTERMC_TYPE_WINDOW (lxtermc_window_get_type())
+#define LXTERMC_TYPE_APP (lxtermc_app_get_type())
 
 /* macro defined in gobject/gtype.h - expands to the following:
  *	GType module_obj_name##_get_type(void);
@@ -26,9 +26,9 @@ G_BEGIN_DECLS
  *	G_GNUC_END_IGNORE_DEPRECATIONS -> _Pragma pop
  *
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
-G_DECLARE_FINAL_TYPE(LxtermcWindow, lxtermc_window, LXTERMC, WINDOW, GtkApplicationWindow)
+G_DECLARE_FINAL_TYPE(LxtermcApp, lxtermc_app, LXTERMC, APP, GtkApplication)
 
-LxtermcWindow *lxtermc_window_new(GtkApplication *parent);
+LxtermcApp *lxtermc_app_new(void);
 
 G_END_DECLS
 
