@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the lxtermc-meson package.
+# This file is distributed under the same license as the lxtermc package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: lxtermc-meson\n"
+"Project-Id-Version: lxtermc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-15 10:43+0100\n"
+"POT-Creation-Date: 2024-02-16 07:57+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,24 +17,24 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/lxtermc.c:86 src/lxtermc.c:99
+#: src/lxtermcapp.c:26 src/lxtermcapp.c:40
 #, c-format
 msgid "Hello!"
 msgstr ""
 
-#: src/lxtermc.c:100 src/lxtermc.c:168
+#: src/lxtermcapp.c:41 src/lxtermcapp.c:78
 msgid "Locale"
 msgstr ""
 
 #. GtkWidget *window = gtk_application_window_new(app);
-#: src/lxtermc.c:101 src/lxtermc.c:156
+#: src/lxtermcapp.c:42 src/lxtermcapp.c:66
 msgid "Welcome!"
 msgstr ""
 
-#: src/lxtermc.c:102 src/lxtermc.c:165
+#: src/lxtermcapp.c:43 src/lxtermcapp.c:75
 msgid "Hello gtk4"
 msgstr ""
 
-#: src/lxtermc.c:103 src/lxtermc.c:171
+#: src/lxtermcapp.c:44 src/lxtermcapp.c:81
 msgid "Exit"
 msgstr ""

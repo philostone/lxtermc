@@ -1,5 +1,5 @@
 
-project('lxtermc-meson', 'c',
+project('lxtermc', 'c',
 	version: '0.0.1',			# still just gettings things to work
 	meson_version: '>= 1.2.0',		# same as for glib-2.0
 	default_options: [

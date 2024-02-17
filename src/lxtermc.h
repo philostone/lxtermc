@@ -10,3 +10,5 @@ typedef struct _cmdargs {
 	char *locale;		// use locale instead of user locale
 	GtkWindow *win;		// -> to the top level window arguments regard
 } cmdargs_t;
+
+extern char lxtermc_usage[];

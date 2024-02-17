@@ -10,11 +10,11 @@ G_BEGIN_DECLS
 
 #define LXTERMC_TYPE_APP (lxtermc_app_get_type())
 
-/* macro defined in gobject/gtype.h - expands to the following:
- *	GType module_obj_name##_get_type(void);
+/* macro below defined in gobject/gtype.h - expands to the following:
+ *	GType lxtermc_app_get_type(void);
  *	G_GNUC_BEGIN_IGNORE_DEPRECATIONS --> _Pragma push disable:1478
- *	typedef struct _##ModuleObjName ModuleObjName;
- *	typedef struct { ParentName##Class parent_class; } ModuleObjName##Class;
+ *	typedef struct _LxtermcApp LxtermcApp;
+ *	typedef struct { GtkApplicationClass parent_class; } LxtermcAppClass;
  *
  *	_GLIB_DEFINE_AUTOPTR_CHAINUP(ModuleObjName, ParentName)
  *	G_DEFINE_AUTOPTR_CLEANUP_FUNC (ModuleObjName##Class, g_type_class_unref)
@@ -26,9 +26,9 @@ G_BEGIN_DECLS
  *	G_GNUC_END_IGNORE_DEPRECATIONS -> _Pragma pop
  *
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
-G_DECLARE_FINAL_TYPE(LxtermcApp, lxtermc_app, LXTERMC, APP, GtkApplication)
+G_DECLARE_FINAL_TYPE(LxtermcApp,    lxtermc_app,    LXTERMC, APP,      GtkApplication)
 
-LxtermcApp *lxtermc_app_new(void);
+LxtermcApp *lxtermc_app_new(const gchar *label);
 
 G_END_DECLS
 

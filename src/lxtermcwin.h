@@ -26,9 +26,9 @@ G_BEGIN_DECLS
  *	G_GNUC_END_IGNORE_DEPRECATIONS -> _Pragma pop
  *
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
-G_DECLARE_FINAL_TYPE(LxtermcWin, lxtermc_win, LXTERMC, WIN, GtkApplicationWindow)
+G_DECLARE_FINAL_TYPE(LxtermcWin,    lxtermc_win,    LXTERMC, WIN,      GtkApplicationWindow)
 
-LxtermcWin *lxtermc_win_new(GtkApplication *parent);
+LxtermcWin *lxtermc_win_new(LxtermcApp *app);
 
 G_END_DECLS
 
