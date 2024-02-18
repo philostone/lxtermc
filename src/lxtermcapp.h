@@ -6,6 +6,8 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
+//#include "lxtermc.h"
+
 G_BEGIN_DECLS
 
 #define LXTERMC_TYPE_APP (lxtermc_app_get_type())

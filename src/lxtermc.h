@@ -4,11 +4,12 @@
 #define LXTERMC_DEFAULT_LOCALE "sv_SE.utf8"
 
 typedef struct _cmdargs {
-	char *cmd;		// -> argv[0]
-	gchar *exec;		// copy of -e, --command
-	char *cfg;		// -> -c, --config data
-	char *locale;		// use locale instead of user locale
+	gchar *cmd;		// -> argv[0]
+	gchar *exec;		// copy of data from -e, --command
+	gchar *cfg;		// -> -c, --config data-url
+	gchar *locale;		// use locale instead of user locale
 	GtkWindow *win;		// -> to the top level window arguments regard
 } cmdargs_t;
 
-extern char lxtermc_usage[];
+extern gchar lxtermc_usage[];
+int lxtermc_args(int argc, char **argv, cmdargs_t *cmdargs);

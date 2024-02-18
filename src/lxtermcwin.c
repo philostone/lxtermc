@@ -5,6 +5,7 @@
 
 #include "lxtermcapp.h"
 #include "lxtermcwin.h"
+#include "lxtermc.h"
 
 struct _LxtermcWin {
 	GtkApplicationWindow parent_instance;
@@ -12,23 +13,25 @@ struct _LxtermcWin {
 	gchar *label;
 };
 
-//typedef struct _LxtermcWinPrivate LxtermcWinPrivate;
-/*
-struct _LxtermcWinPrivate {
-	char *tobeused;
-};
-*/
-
 G_DEFINE_TYPE(LxtermcWin, lxtermc_win, GTK_TYPE_APPLICATION_WINDOW)
-/*
-static void
+
+static gboolean
+lxtermc_win_close(GtkWindow *win)
+{
+	gchar *fn = "lxtermc_win_close()";
+	g_print("%s - win at: %p\n", fn, (void *)win);
+	gtk_window_close(GTK_WINDOW(win));
+	return FALSE;
+}
+
+void
 lxtermc_win_destroy(LxtermcWin *win)
 {
 	gchar *fn = "lxtermc_win_destroy()";
 	g_print("%s - win at: %p\n", fn, (void *)win);
-	GTK_WINDOW_CLASS(lxtermc_win_parent_class)->destroy(gtkwin);
+	gtk_window_destroy(GTK_WINDOW(win));
 }
-*/
+
 /*
 static void
 lxtermc_window_finalize(GObject *gobj)
@@ -47,6 +50,7 @@ lxtermc_win_class_init(LxtermcWinClass *class)
 //	GObjectClass *obj_class = G_OBJECT_CLASS(class);
 //	GTK_WINDOW_CLASS(class)->destroy = lxtermc_win_destroy;
 //	GTK_APPLICATION_WINDOW_CLASS(class)->finalize = lxtermc_window_finalize;
+	GTK_WINDOW_CLASS(class)->close_request = lxtermc_win_close;
 }
 
 static void
@@ -58,10 +62,7 @@ lxtermc_win_init(LxtermcWin *win)
 
 LxtermcWin *
 lxtermc_win_new(LxtermcApp *app)
-//lxtermc_win_new(GtkApplication *app)
 {
 	g_print("lxtermc_win_new() - app at: %p\n", (void *)app);
-	// g_object_new(LXTERMC_TYPE_WINDOW, NULL);
-	return LXTERMC_WIN(gtk_application_window_new(app));
-//	return g_object_new(LXTERMC_WINDOW_TYPE, )
+	return g_object_new(LXTERMC_TYPE_WIN, "application", app, NULL);
 }

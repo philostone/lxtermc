@@ -29,6 +29,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE(LxtermcWin,    lxtermc_win,    LXTERMC, WIN,      GtkApplicationWindow)
 
 LxtermcWin *lxtermc_win_new(LxtermcApp *app);
+void lxtermc_win_destroy(LxtermcWin *win);
 
 G_END_DECLS
 
