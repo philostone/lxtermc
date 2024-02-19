@@ -28,8 +28,9 @@ G_BEGIN_DECLS
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
 G_DECLARE_FINAL_TYPE(LxtermcWin,    lxtermc_win,    LXTERMC, WIN,      GtkApplicationWindow)
 
-LxtermcWin *lxtermc_win_new(LxtermcApp *app);
+LxtermcWin *lxtermc_win_new(LxtermcApp *app, const gchar *label);
 void lxtermc_win_destroy(LxtermcWin *win);
+gboolean lxtermc_win_close(GtkWindow *win);
 
 G_END_DECLS
 

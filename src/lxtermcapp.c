@@ -58,7 +58,7 @@ lxtermc_app_activate(GApplication *app)
 	g_print("%s - '%s' - app at: %p\n",
 		fn, ((LxtermcApp *)app)->label, (void *)app);
 
-	LxtermcWin *win = lxtermc_win_new(LXTERMC_APP(app));
+	LxtermcWin *win = lxtermc_win_new(LXTERMC_APP(app), "= win label =");
 	gtk_window_set_title(GTK_WINDOW(win), _("Welcome!"));
 	gtk_window_set_default_size(GTK_WINDOW(win), 300, 200);
 
@@ -75,7 +75,8 @@ lxtermc_app_activate(GApplication *app)
 	g_signal_connect(locale_button, "clicked", G_CALLBACK(display_locale), NULL);
 
 	GtkWidget *close_button = gtk_button_new_with_label(_("Exit"));
-	g_signal_connect_swapped(close_button, "clicked", G_CALLBACK(lxtermc_win_destroy), win);
+	g_signal_connect_swapped(close_button, "clicked", G_CALLBACK(lxtermc_win_close), win);
+//	g_signal_connect_swapped(close_button, "clicked", G_CALLBACK(lxtermc_win_destroy), win);
 
 	gtk_box_append(GTK_BOX(box), hello_button);
 	gtk_box_append(GTK_BOX(box), locale_button);
@@ -182,11 +183,21 @@ lxtermc_app_finalize(GObject *obj)
 }
 
 static void
+lxtermc_app_startup(GApplication *app)
+{
+	gchar *fn = "lxtermc_app_startup()";
+	LxtermcApp *lxapp = LXTERMC_APP(app);
+	g_print("%s - '%s' - at: %p\n", fn, lxapp->label, (void *)app);
+	G_APPLICATION_CLASS(lxtermc_app_parent_class)->startup(app);
+}
+
+static void
 lxtermc_app_class_init(LxtermcAppClass *class)
 {
 	g_print("lxtermc_app_class_init() - class at: %p\n", (void *)class);
 	// virtual function overrides
 	// property and signal definitions
+	G_APPLICATION_CLASS(class)->startup = lxtermc_app_startup;
 	G_APPLICATION_CLASS(class)->open = lxtermc_app_open;
 	G_APPLICATION_CLASS(class)->command_line = lxtermc_app_cmdline;
 	G_APPLICATION_CLASS(class)->activate = lxtermc_app_activate;
