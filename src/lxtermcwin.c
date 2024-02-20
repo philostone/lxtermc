@@ -32,20 +32,12 @@ lxtermc_win_destroy(LxtermcWin *win)
 	gtk_window_destroy(GTK_WINDOW(win));
 }
 
-/*
-static void
-lxtermc_window_finalize(GObject *gobj)
-{
-	g_print("lxtermc_window_dispose() - nothing yet!\n");
-	fprintf(stderr, "lxtermc_window_dispose() - nothing yet!\n");
-	G_OBJECT_CLASS(lxtermc_window_parent_class)->finalize(gobj);
-}
-*/
-
 static void
 lxtermc_win_activate(GApplication *app)
 {
 	gchar *fn = "lxtermc_win_activate()";
+	LxtermcWin *lxwin = LXTERMC_WIN(app);
+	g_print("%s - '%s' - at: %p\n", fn, lxwin->label, (void *)app);
 /*
 	g_print("%s - '%s' - app at: %p\n",
 		fn, ((LxtermcApp *)app)->label, (void *)app);
@@ -82,8 +74,6 @@ static void lxtermc_win_dispose(GObject *obj)
 	gchar *fn = "lxtermc_win_dispose()";
 	LxtermcWin *win = LXTERMC_WIN(obj);
 	g_print("%s - '%s' - at: %p\n", fn, win->label, (void *)obj);
-	g_free(win->label);
-	win->label = NULL;
 	G_OBJECT_CLASS(lxtermc_win_parent_class)->dispose(obj);
 }
 
@@ -92,6 +82,8 @@ static void lxtermc_win_finalize(GObject *obj)
 	gchar *fn = "lxtermc_win_finalize()";
 	LxtermcWin *win = LXTERMC_WIN(obj);
 	g_print("%s - '%s' - at: %p\n", fn, win->label, (void *)obj);
+	g_free(win->label);
+	win->label = NULL;
 	G_OBJECT_CLASS(lxtermc_win_parent_class)->finalize(obj);
 }
 
@@ -119,7 +111,7 @@ lxtermc_win_init(LxtermcWin *win)
 LxtermcWin *
 lxtermc_win_new(LxtermcApp *app, const gchar *label)
 {
-	g_print("lxtermc_win_new() - app at: %p\n", (void *)app);
+	g_print("lxtermc_win_new() - '%s' - app at: %p\n", label, (void *)app);
 	LxtermcWin *win = g_object_new(LXTERMC_TYPE_WIN, "application", app, NULL);
 	win->label = g_strdup(label);
 	return win;

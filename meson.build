@@ -8,6 +8,12 @@ project('lxtermc', 'c',
 	]
 )
 
+ver_str = '-DLXTERMC_VERSION="@0@"'
+add_project_arguments(
+	ver_str.format(meson.project_version()),
+	language: 'c'
+)
+
 gtkdeps = [dependency('gtk4', version: '>=4.0')]
 
 subdir('po')
