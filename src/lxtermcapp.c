@@ -100,10 +100,6 @@ lxtermc_app_shutdown(GApplication *app)
 	LxtermcApp *lxapp = LXTERMC_APP(app);
 	g_print("lxtermc_app_shutdown() - '%s' - app at: %p\n",
 		lxapp->label, (void *)app);
-	g_free(lxapp->label);
-	lxapp->label = NULL;
-	g_free(lxapp->cmdargs);
-	lxapp->cmdargs = NULL;
 	G_APPLICATION_CLASS(lxtermc_app_parent_class)->shutdown(app);
 }
 
@@ -115,17 +111,17 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 	gint argc;
 	gchar **argv = g_application_command_line_get_arguments(cmdline, &argc);
 	g_print("%s - '%s' - app at: %p - cmdline at: %p\n",
-		fn, lxapp->label, (void *)app, (void *)cmdline);
+		fn, lxapp->label, (void *)lxapp, (void *)cmdline);
 	for (int i = 0; i < argc; i++)
 		g_print("%s - arg #%i: %s\n", fn, i, argv[i]);
 
 	g_print("%s - cmdargs before parsing, at: %p\n", fn, (void *)lxapp->cmdargs);
-//	g_print("%s - cmd   : %s\n", fn, lxapp->cmdargs->cmd);
-	g_print("%s - exec  : %s\n", fn, lxapp->cmdargs->exec);
-	g_print("%s - cfg   : %s\n", fn, lxapp->cmdargs->cfg);
-	g_print("%s - title : %s\n", fn, lxapp->cmdargs->title);
-	g_print("%s - locale: %s\n", fn, lxapp->cmdargs->locale);
-	g_print("%s - win   : %p\n", fn, (void *)lxapp->cmdargs->win);
+//	g_print("%s - cmd    : at: %p - %s\n", fn, lxapp->cmdargs->cmd, lxapp->cmdargs->cmd);
+	g_print("%s - exec   : at: %p - %s\n", fn, lxapp->cmdargs->exec, lxapp->cmdargs->exec);
+	g_print("%s - cfg    : at: %p - %s\n", fn, lxapp->cmdargs->cfg, lxapp->cmdargs->cfg);
+	g_print("%s - title  : at: %p - %s\n", fn, lxapp->cmdargs->title, lxapp->cmdargs->title);
+	g_print("%s - locale : at: %p - %s\n", fn, lxapp->cmdargs->locale, lxapp->cmdargs->locale);
+	g_print("%s - win    : at: %p\n", fn, (void *)lxapp->cmdargs->win);
 
 	if (lxtermc_args(argc, argv, lxapp->cmdargs) != TRUE) {
 		g_print("%s - lxtermc_args() returned with error\n", fn);
@@ -133,8 +129,8 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 	}
 
 	setlocale(LC_ALL, "");
-	g_print("%s - '%s' - setting locale to %s\n", fn, lxapp->label,
-		setlocale(LC_MESSAGES, lxapp->cmdargs->locale));
+	g_print("%s - '%s' - at: %p - setting locale to %s\n",
+		fn, lxapp->label, (void *)lxapp, setlocale(LC_MESSAGES, lxapp->cmdargs->locale));
 	bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
@@ -142,12 +138,12 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 	g_strfreev(argv);
 
 	g_print("%s - cmdargs after parsing, at: %p\n", fn, (void *)lxapp->cmdargs);
-//	g_print("%s - cmd   : %s\n", fn, lxapp->cmdargs->cmd);
-	g_print("%s - exec  : %s\n", fn, lxapp->cmdargs->exec);
-	g_print("%s - cfg   : %s\n", fn, lxapp->cmdargs->cfg);
-	g_print("%s - title : %s\n", fn, lxapp->cmdargs->title);
-	g_print("%s - locale: %s\n", fn, lxapp->cmdargs->locale);
-	g_print("%s - win   : %p\n", fn, (void *)lxapp->cmdargs->win);
+//	g_print("%s - cmd    : at: %p - %s\n", fn, lxapp->cmdargs->cmd, lxapp->cmdargs->cmd);
+	g_print("%s - exec   : at: %p - %s\n", fn, lxapp->cmdargs->exec, lxapp->cmdargs->exec);
+	g_print("%s - cfg    : at: %p - %s\n", fn, lxapp->cmdargs->cfg, lxapp->cmdargs->cfg);
+	g_print("%s - title  : at: %p - %s\n", fn, lxapp->cmdargs->title, lxapp->cmdargs->title);
+	g_print("%s - locale : at: %p - %s\n", fn, lxapp->cmdargs->locale, lxapp->cmdargs->locale);
+	g_print("%s - win    : at: %p\n", fn, (void *)lxapp->cmdargs->win);
 
 	// this implementation needs an explicit activation signal...
 	g_application_activate(G_APPLICATION(app));
@@ -167,7 +163,29 @@ static void
 lxtermc_app_finalize(GObject *obj)
 {
 	gchar *fn ="lxtermc_app_finalize()";
-	g_print("%s - '%s' - at: %p\n", fn, LXTERMC_APP(obj)->label, (void *)obj);
+	LxtermcApp *lxapp = LXTERMC_APP(obj);
+	g_print("%s - '%s' - at: %p\n", fn, lxapp->label, (void *)obj);
+	if (lxapp->label) g_free(lxapp->label);
+	lxapp->label = NULL;
+
+	// always present
+	g_free(lxapp->cmdargs->locale);
+
+	// maybe allocated
+	if (lxapp->cmdargs->exec) {
+		g_free(lxapp->cmdargs->exec);
+		lxapp->cmdargs->exec = NULL;
+	}
+	if (lxapp->cmdargs->cfg) {
+		g_free(lxapp->cmdargs->cfg);
+		lxapp->cmdargs->cfg = NULL;
+	}
+	if (lxapp->cmdargs->title) {
+		g_free(lxapp->cmdargs->title);
+		lxapp->cmdargs->title = NULL;
+	}
+	g_free(lxapp->cmdargs);
+	lxapp->cmdargs = NULL;
 	G_OBJECT_CLASS(lxtermc_app_parent_class)->finalize(obj);
 }
 
@@ -198,13 +216,22 @@ lxtermc_app_class_init(LxtermcAppClass *class)
 static void
 lxtermc_app_init(LxtermcApp *app)
 {
+	char *fn = "lxtermc_app_init()";
 	// no use showing label, it is not yet set...
 	// this function is called before g_object_new() returns ...
 //	g_print("lxtermc_app_init() - '%s' - app at: %p\n", app->label, (void *)app);
-	g_print("lxtermc_app_init() - app at: %p\n", (void *)app);
+	g_print("%s - app at: %p\n", fn, (void *)app);
 	// initializations
 	app->cmdargs = g_new0(cmdargs_t, 1);
-	app->cmdargs->locale = LXTERMC_DEFAULT_LOCALE;
+	app->cmdargs->locale = g_strdup(LXTERMC_DEFAULT_LOCALE);
+
+	g_print("%s - cmdargs after g_new0(), at: %p\n", fn, (void *)app->cmdargs);
+//	g_print("%s - cmd    : at: %p - %s\n", fn, app->cmdargs->cmd, app->cmdargs->cmd);
+	g_print("%s - exec   : at: %p - %s\n", fn, app->cmdargs->exec, app->cmdargs->exec);
+	g_print("%s - cfg    : at: %p - %s\n", fn, app->cmdargs->cfg, app->cmdargs->cfg);
+	g_print("%s - title  : at: %p - %s\n", fn, app->cmdargs->title, app->cmdargs->title);
+	g_print("%s - locale : at: %p - %s\n", fn, app->cmdargs->locale, app->cmdargs->locale);
+	g_print("%s - win    : at: %p\n", fn, (void *)app->cmdargs->win);
 }
 
 LxtermcApp *

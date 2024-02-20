@@ -87,7 +87,8 @@ lxtermc_option(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...
 				*at = -1;
 				break;
 			}
-			*opt_arg = argv[*at]+l+1;
+			if (*opt_arg) g_free(*opt_arg);
+			*opt_arg = g_strdup(argv[*at]+l+1);
 			g_print("=%s\n", *opt_arg);
 			break;
 		}
@@ -112,7 +113,8 @@ lxtermc_option(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...
 			*at = -1;
 			break;
 		}
-		*opt_arg = argv[*at];
+		if (*opt_arg) g_free(*opt_arg);
+		*opt_arg = g_strdup(argv[*at]);
 		g_print(", %s\n", *opt_arg);
 		break;
 	}
@@ -126,7 +128,7 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cmdargs)
 	gchar *fn = "lxtermc_args()";
 	g_print("%s - start\n", fn);
 	int at = 0;
-	cmdargs->cmd = argv[0];
+//	cmdargs->cmd = argv[0];
 	while (++at < argc && at > 0) {
 		if (lxtermc_option(argc, argv, &at, &(cmdargs->exec), 2, "-e", "--command"))
 			continue;
