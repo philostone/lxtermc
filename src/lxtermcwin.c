@@ -11,6 +11,7 @@ struct _LxtermcWin {
 	GtkApplicationWindow parent_instance;
 	// subclass instance variables
 	gchar *label;
+	cmdargs_t *cmdargs;
 };
 
 G_DEFINE_TYPE(LxtermcWin, lxtermc_win, GTK_TYPE_APPLICATION_WINDOW)

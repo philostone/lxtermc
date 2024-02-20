@@ -12,7 +12,7 @@ struct _LxtermcApp {
 	GtkApplication parent_instance;
 	// subclass instance variables
 	gchar *label;
-	cmdargs_t *cmdargs;
+	cmdargs_t *cmdargs;		// ownership transferred to lxtermwin instance
 };
 
 G_DEFINE_TYPE(LxtermcApp, lxtermc_app, GTK_TYPE_APPLICATION)
@@ -62,8 +62,8 @@ lxtermc_app_activate(GApplication *app)
 	LxtermcWin *win = lxtermc_win_new(LXTERMC_APP(app), label);
 	g_free(label);
 
-g_print("%s - '%s' - setting new window title to %s\n", fn, LXTERMC_APP(app)->label,
-	((LXTERMC_APP(app)->cmdargs->title) ?: LXTERMC_NAME));
+	g_print("%s - '%s' - setting new window title to %s\n", fn, LXTERMC_APP(app)->label,
+		((LXTERMC_APP(app)->cmdargs->title) ?: LXTERMC_NAME));
 
 	gtk_window_set_title(GTK_WINDOW(win), ((LXTERMC_APP(app)->cmdargs->title) ?: LXTERMC_NAME));
 	gtk_window_set_default_size(GTK_WINDOW(win), LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
