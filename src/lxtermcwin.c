@@ -43,7 +43,7 @@ lxtermc_win_destroy(LxtermcWin *win)
 	g_print("%s - win at: %p\n", fn, (void *)win);
 	gtk_window_destroy(GTK_WINDOW(win));
 }
-
+/*
 static void
 lxtermc_win_activate(GApplication *app)
 {
@@ -58,6 +58,7 @@ lxtermc_win_activate(GApplication *app)
 		((lxwin->cmdargs->title) ? lxwin->cmdargs->title: LXTERMC_NAME));
 	gtk_window_set_default_size(GTK_WINDOW(lxwin),
 		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
+*/
 /*
 	gtk_window_set_title(GTK_WINDOW(win), _("Welcome!"));
 	gtk_window_set_default_size(GTK_WINDOW(win), 300, 200);
@@ -82,8 +83,10 @@ lxtermc_win_activate(GApplication *app)
 	gtk_box_append(GTK_BOX(box), close_button);
 	gtk_window_present(GTK_WINDOW(win));
 */
+/*
 	g_print("%s - end\n", fn);
 }
+*/
 
 static void lxtermc_win_dispose(GObject *obj)
 {
@@ -115,7 +118,7 @@ lxtermc_win_class_init(LxtermcWinClass *class)
 	// property and signal definitions
 //	GObjectClass *obj_class = G_OBJECT_CLASS(class);
 //	GTK_WINDOW_CLASS(class)->destroy = lxtermc_win_destroy;
-	G_APPLICATION_CLASS(class)->activate = lxtermc_win_activate;
+//	G_APPLICATION_CLASS(class)->activate = lxtermc_win_activate;
 	GTK_WINDOW_CLASS(class)->close_request = lxtermc_win_close;
 	G_OBJECT_CLASS(class)->dispose = lxtermc_win_dispose;
 	G_OBJECT_CLASS(class)->finalize = lxtermc_win_finalize;

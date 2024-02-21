@@ -12,7 +12,8 @@ struct _LxtermcApp {
 	GtkApplication parent_instance;
 	// subclass instance variables
 	gchar *label;
-	cmdargs_t *cmdargs;		// ownership transferred to lxtermwin instance
+	cmdargs_t *cmdargs;		// temp ownership, later transferred to lxtermwin instance
+	GptrArray *lxwins;		// array of pointers to lxtermcwin instances
 };
 
 G_DEFINE_TYPE(LxtermcApp, lxtermc_app, GTK_TYPE_APPLICATION)
@@ -58,6 +59,7 @@ lxtermc_app_activate(GApplication *app)
 	gchar *fn = "lxtermc_app_activate()";
 	LxtermcApp *lxapp = LXTERMC_APP(app);
 	g_print("%s - '%s' - app at: %p\n", fn, lxapp->label, (void *)app);
+
 	GList *winlist = gtk_application_get_windows(GTK_APPLICATION(app));
 	guint numwin = g_list_length(winlist);
 	gchar *label = g_strdup_printf("= win label #%u =", numwin+1);
