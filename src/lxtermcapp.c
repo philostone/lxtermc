@@ -79,6 +79,8 @@ lxtermc_app_activate(GApplication *app)
 	lxtermc_win_set_cmdargs(win, lxapp->cmdargs);
 	lxapp->cmdargs = NULL;
 
+	lxtermc_win_construct(win);
+
 /*
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_widget_set_halign(box, GTK_ALIGN_CENTER);

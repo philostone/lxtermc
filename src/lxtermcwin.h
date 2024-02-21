@@ -32,6 +32,8 @@ G_DECLARE_FINAL_TYPE(LxtermcWin,    lxtermc_win,    LXTERMC, WIN,      GtkApplic
 
 LxtermcWin *lxtermc_win_new(LxtermcApp *app, const gchar *label);
 void lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs);
+void lxtermc_win_construct(LxtermcWin *win);
+
 void lxtermc_win_destroy(LxtermcWin *win);
 gboolean lxtermc_win_close(GtkWindow *win);
 

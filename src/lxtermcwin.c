@@ -27,6 +27,15 @@ lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs)
 	win->cmdargs = cargs;
 }
 
+void
+lxtermc_win_construct(LxtermcWin *win)
+{
+	char *fn = "lxtermc_win_construct()";
+	g_print("%s - start...\n");
+	// set title and everything else according to cargs and preferences
+	// populate window
+}
+
 gboolean
 lxtermc_win_close(GtkWindow *win)
 {
