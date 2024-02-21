@@ -16,6 +16,17 @@ struct _LxtermcWin {
 
 G_DEFINE_TYPE(LxtermcWin, lxtermc_win, GTK_TYPE_APPLICATION_WINDOW)
 
+void
+lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs)
+{
+	char *fn ="lxtermc_win_set_cmdargs()";
+	if (win->cmdargs) {
+		g_print("%s - freeing former set of args...\n", fn);
+		lxtermc_clear_cmdargs(&(win->cmdargs));
+	}
+	win->cmdargs = cargs;
+}
+
 gboolean
 lxtermc_win_close(GtkWindow *win)
 {
@@ -39,11 +50,15 @@ lxtermc_win_activate(GApplication *app)
 	gchar *fn = "lxtermc_win_activate()";
 	LxtermcWin *lxwin = LXTERMC_WIN(app);
 	g_print("%s - '%s' - at: %p\n", fn, lxwin->label, (void *)app);
-/*
-	g_print("%s - '%s' - app at: %p\n",
-		fn, ((LxtermcApp *)app)->label, (void *)app);
 
-	LxtermcWin *win = lxtermc_win_new(LXTERMC_APP(app));
+	g_print("%s - '%s' - setting new window title to %s\n", fn, lxwin->label,
+		((lxwin->cmdargs->title) ? lxwin->cmdargs->title: LXTERMC_NAME));
+
+	gtk_window_set_title(GTK_WINDOW(lxwin),
+		((lxwin->cmdargs->title) ? lxwin->cmdargs->title: LXTERMC_NAME));
+	gtk_window_set_default_size(GTK_WINDOW(lxwin),
+		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
+/*
 	gtk_window_set_title(GTK_WINDOW(win), _("Welcome!"));
 	gtk_window_set_default_size(GTK_WINDOW(win), 300, 200);
 
@@ -85,6 +100,10 @@ static void lxtermc_win_finalize(GObject *obj)
 	g_print("%s - '%s' - at: %p\n", fn, win->label, (void *)obj);
 	g_free(win->label);
 	win->label = NULL;
+
+	// maybe allocated
+	if (win->cmdargs) lxtermc_clear_cmdargs(&(win->cmdargs));
+	else g_print("%s - no cmdargs to free, why ???\n", fn);
 	G_OBJECT_CLASS(lxtermc_win_parent_class)->finalize(obj);
 }
 

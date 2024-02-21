@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <X11/Xlib.h>
+//#include <X11/Xlib.h>
 
 #include "lxtermc.h"
 #include "lxtermcapp.h"
@@ -33,53 +33,28 @@ gchar lxtermc_usage[] = {
 	"  -h, --help                 show this help information\n"
 };
 
-/* return FALSE (0) if option is unmatched, TRUE (1) if matched, *at is set to -1 on error */
-/*
-static int
-lxtermc_option(int argc, char **argv, int *at, const gchar *so, const gchar *lo, gchar **opt)
-{
-	gchar *fn = "lxtermc_option()";
-	size_t ll = (lo) ? strlen(lo) : 0;
-	gchar *arg = NULL;
-	if (ll && strncmp(lo, argv[*at], ll) != 0) lo = NULL;
-	if (!lo && so && strcmp(argv[*at], so) != 0) so = NULL;
-	if (!so && !lo) return 0;
-
-	g_print("%s: %s", fn, ((so) ? so : lo));
-
-	if (lo && *(argv[*at]+ll) == '=') arg = argv[*at]+ll+1;
-	if (opt) {
-		g_print("%s", ((arg) ? "=" : ", "));
-		if (!arg && ++(*at) >= argc) {
-			g_print("expected option argument is missing!\n");
-			*at = -1;
-			return 1;
-		} else  {
-			arg = argv[*at];
-		}
-		*opt = arg;
-	}
-	g_print("%s\n", ((opt) ? *opt : ""));
-	return 1;
-}
+/* return FALSE (0) if option is unmatched, TRUE (1) if matched, *at is set to -1 on error
+ * if opt_arg is not NULL, corresponding argument value (either separate arg or after =) is
+ * copied to *opt_arg, if *opt_arg is not NULL, data there is freed
 */
-
 static int
-lxtermc_option(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
+lxtc_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
 {
-	char *fn = "lxtermc_option()";
+	char *fn = "lxtc_opt()";
 	char *opt = NULL;
 	va_list ap;
 	va_start(ap, num_opts);
 	for (int i = 0; i < num_opts; i++) {
 		opt = va_arg(ap, char *);
 		int l = strlen(opt);
+
+		// argument does NOT match option
 		if (strncmp(opt, argv[*at], l) != 0) {
 			opt = NULL;
 			continue;
 		}
 
-		// option IS matched, up until optional '='
+		// argument IS matched, WITH trailing '='
 		if (*(argv[*at]+l) == '=') {
 			g_print("%s: %s", fn, opt);
 			if (!opt_arg) {
@@ -123,47 +98,48 @@ lxtermc_option(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...
 }
 
 int
-lxtermc_args(int argc, char **argv, cmdargs_t *cmdargs)
+lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 {
 	gchar *fn = "lxtermc_args()";
 	g_print("%s - start\n", fn);
 	int at = 0;
-//	cmdargs->cmd = argv[0];
+	//cargs->cmd = argv[0]; // not used
+	// at is set to -1 by lxtc_opt() on error
 	while (++at < argc && at > 0) {
-		if (lxtermc_option(argc, argv, &at, &(cmdargs->exec), 2, "-e", "--command"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->exec), 2, "-e", "--command"))
 			continue;
-		if (lxtermc_option(argc, argv, &at, NULL, 2, "-l", "--login_shell")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 2, "-l", "--login_shell")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (lxtermc_option(argc, argv, &at, &(cmdargs->cfg), 2, "-c", "--config"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->cfg), 2, "-c", "--config"))
 			continue;
-		if (lxtermc_option(argc, argv, &at, &(cmdargs->title), 3, "-t", "-T", "--title"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->title), 3, "-t", "-T", "--title"))
 			continue;
-		if (lxtermc_option(argc, argv, &at, NULL, 1, "--tabs")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 1, "--tabs")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (lxtermc_option(argc, argv, &at, NULL, 1, "--working-directory")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 1, "--working-directory")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (lxtermc_option(argc, argv, &at, NULL, 1, "--no-remote")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 1, "--no-remote")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (lxtermc_option(argc, argv, &at, &(cmdargs->locale), 1, "--locale"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->locale), 1, "--locale"))
 			continue;
-		if (lxtermc_option(argc, argv, &at, NULL, 2, "-v", "--version")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 2, "-v", "--version")) {
 			g_print("\n"LXTERMC_NAME" - "LXTERMC_VERSION"\n");
 			at = 0;
 			break;
 		}
-		if (lxtermc_option(argc, argv, &at, NULL, 2, "-h", "--help")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 2, "-h", "--help")) {
 			g_print("\n%s\n", lxtermc_usage);
 			at = 0;
 			break;
@@ -176,24 +152,32 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cmdargs)
 	return (at > 0) ? TRUE : FALSE;
 }
 
-/*
 static void
-display_locale(GtkWidget *w, gpointer data)
+free_and_unset(char **ptr)
 {
-	char *fn = "display_locale()";
-	g_print("%s - w at: %p - data at: %p\n", fn, (void *)w, (void *)data);
-
-	g_print("%s - current msg locale    : %s\n", fn, setlocale(LC_MESSAGES, NULL));
-	g_print("%s - current base dir      : %s\n", fn, bindtextdomain(GETTEXT_PACKAGE, NULL));
-	g_print("%s - current codeset       : %s\n", fn, bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
-	g_print("%s - current text domain   : %s\n", fn, textdomain(NULL));
-	g_print("%s - gettext('Hello!')     : %s\n", fn, gettext("Hello!"));
-	g_print("%s - gettext('Locale')     : %s\n", fn, gettext("Locale"));
-	g_print("%s - gettext('Welcome!')   : %s\n", fn, gettext("Welcome!"));
-	g_print("%s - gettext('Hello gtk4') : %s\n", fn, gettext("Hello gtk4"));
-	g_print("%s - gettext('Exit')       : %s\n", fn, gettext("Exit"));
+	if (!ptr) return;
+	g_free(*ptr);
+	*ptr = NULL;
 }
-*/
+
+void
+lxtermc_clear_cmdargs(cmdargs_t **cargs)
+{
+	if (!cargs || !(*cargs)) {
+		g_print("lxtermc_clear_cmdargs() - nothing to free...\n");
+		return;
+	}
+
+	// *cargs is pointer to cmdargs_t struct
+	// (*cargs)->exe is pointer to char
+	// &((*cargs)->exe) is pointer to the pointer to the char
+
+	free_and_unset(&((*cargs)->exec));
+	free_and_unset(&((*cargs)->cfg));
+	free_and_unset(&((*cargs)->title));
+	free_and_unset(&((*cargs)->locale));
+	*cargs = NULL;
+}
 
 int
 main(int argc, char **argv)

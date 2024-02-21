@@ -6,6 +6,8 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
+#include "lxtermc.h"
+
 G_BEGIN_DECLS
 
 #define LXTERMC_TYPE_WIN (lxtermc_win_get_type())
@@ -29,6 +31,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE(LxtermcWin,    lxtermc_win,    LXTERMC, WIN,      GtkApplicationWindow)
 
 LxtermcWin *lxtermc_win_new(LxtermcApp *app, const gchar *label);
+void lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs);
 void lxtermc_win_destroy(LxtermcWin *win);
 gboolean lxtermc_win_close(GtkWindow *win);
 
