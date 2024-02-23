@@ -12,8 +12,8 @@ struct _LxtermcApp {
 	GtkApplication parent_instance;
 	// subclass instance variables
 	gchar *label;
-	cmdargs_t *cmdargs;		// temp ownership, later transferred to lxtermwin instance
-	GptrArray *lxwins;		// array of pointers to lxtermcwin instances
+	cmdargs_t *cmdargs;		// temporary ownership, transferred to lxtermwin instance
+	GPtrArray *lxwins;		// array of pointers to lxtermcwin instances
 };
 
 G_DEFINE_TYPE(LxtermcApp, lxtermc_app, GTK_TYPE_APPLICATION)
@@ -43,6 +43,7 @@ display_locale(GtkWidget *w, gpointer data)
 	g_print("%s - gettext('Exit')       : %s\n", fn, gettext("Exit"));
 }
 */
+/*
 static void
 lxtermc_app_open(GApplication *app, GFile **files, int nfiles, const char *hint)
 {
@@ -52,7 +53,7 @@ lxtermc_app_open(GApplication *app, GFile **files, int nfiles, const char *hint)
 		nfiles, (void *)files);
 	g_print("%s - '%s' - hint: %s\n", fn, ((LxtermcApp *)app)->label, hint);
 }
-
+*/
 static void
 lxtermc_app_activate(GApplication *app)
 {
@@ -66,21 +67,12 @@ lxtermc_app_activate(GApplication *app)
 
 	LxtermcWin *win = lxtermc_win_new(lxapp, label);
 	g_free(label);
-/*
-	g_print("%s - '%s' - setting new window title to %s\n", fn, lxapp->label,
-		((lxapp->cmdargs->title) ? lxapp->cmdargs->title: LXTERMC_NAME));
 
-	gtk_window_set_title(GTK_WINDOW(win),
-		((lxapp->cmdargs->title) ? lxapp->cmdargs->title: LXTERMC_NAME));
-	gtk_window_set_default_size(GTK_WINDOW(win),
-		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
-*/
 	// transfer cmdargs struct ownership to the new window
 	lxtermc_win_set_cmdargs(win, lxapp->cmdargs);
 	lxapp->cmdargs = NULL;
 
 	lxtermc_win_construct(win);
-
 /*
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
@@ -196,7 +188,7 @@ lxtermc_app_class_init(LxtermcAppClass *class)
 	// virtual function overrides
 	// property and signal definitions
 	G_APPLICATION_CLASS(class)->startup = lxtermc_app_startup;
-	G_APPLICATION_CLASS(class)->open = lxtermc_app_open;
+//	G_APPLICATION_CLASS(class)->open = lxtermc_app_open;
 	G_APPLICATION_CLASS(class)->command_line = lxtermc_app_cmdline;
 	G_APPLICATION_CLASS(class)->activate = lxtermc_app_activate;
 	G_APPLICATION_CLASS(class)->shutdown = lxtermc_app_shutdown;
@@ -213,6 +205,7 @@ lxtermc_app_init(LxtermcApp *app)
 //	g_print("lxtermc_app_init() - '%s' - app at: %p\n", app->label, (void *)app);
 	g_print("%s - app at: %p\n", fn, (void *)app);
 	// initializations
+//	app->lxwins = g_ptr_array_new();
 }
 
 LxtermcApp *

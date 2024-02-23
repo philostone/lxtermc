@@ -15,7 +15,47 @@ struct _LxtermcWin {
 };
 
 G_DEFINE_TYPE(LxtermcWin, lxtermc_win, GTK_TYPE_APPLICATION_WINDOW)
-
+/*
+char lxtermc_ui[] =
+'<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <object id="window" class="GtkWindow">
+    <property name="title">Grid</property>
+    <child>
+      <object id="grid" class="GtkGrid">
+        <child>
+          <object id="button1" class="GtkButton">
+            <property name="label">Button 1</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object id="button2" class="GtkButton">
+            <property name="label">Button 2</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object id="quit" class="GtkButton">
+            <property name="label">Quit</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+              <property name="column-span">2</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+</interface>';
+*/
 void
 lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs)
 {
@@ -31,9 +71,20 @@ void
 lxtermc_win_construct(LxtermcWin *win)
 {
 	char *fn = "lxtermc_win_construct()";
-	g_print("%s - start...\n");
+	g_print("%s - '%s' - at: %p\n", fn, win->label, (void *)win);
+//	GtkBuilder *builder = gtk_builder_new_from_string(lxtermc_ui, strlen(lxtermc_ui)-1);
+
 	// set title and everything else according to cargs and preferences
 	// populate window
+	
+	g_print("%s - '%s' - setting new window title to %s\n", fn, win->label,
+		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
+
+	gtk_window_set_title(GTK_WINDOW(win),
+		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
+	gtk_window_set_default_size(GTK_WINDOW(win),
+		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
+
 }
 
 gboolean
@@ -59,19 +110,8 @@ lxtermc_win_activate(GApplication *app)
 	gchar *fn = "lxtermc_win_activate()";
 	LxtermcWin *lxwin = LXTERMC_WIN(app);
 	g_print("%s - '%s' - at: %p\n", fn, lxwin->label, (void *)app);
-
-	g_print("%s - '%s' - setting new window title to %s\n", fn, lxwin->label,
-		((lxwin->cmdargs->title) ? lxwin->cmdargs->title: LXTERMC_NAME));
-
-	gtk_window_set_title(GTK_WINDOW(lxwin),
-		((lxwin->cmdargs->title) ? lxwin->cmdargs->title: LXTERMC_NAME));
-	gtk_window_set_default_size(GTK_WINDOW(lxwin),
-		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
 */
 /*
-	gtk_window_set_title(GTK_WINDOW(win), _("Welcome!"));
-	gtk_window_set_default_size(GTK_WINDOW(win), 300, 200);
-
 	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 	gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
 	gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
