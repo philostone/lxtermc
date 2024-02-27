@@ -14,6 +14,12 @@ add_project_arguments(
 	language: 'c'
 )
 
+datadir_str = '-DLXTERMC_DATA_DIR="@0@"'
+add_project_arguments(
+	datadir_str.format(get_option('prefix')/get_option('datadir')),
+	language: 'c'
+)
+
 gtkdeps = [dependency('gtk4', version: '>=4.0')]
 
 subdir('po')

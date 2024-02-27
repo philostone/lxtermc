@@ -24,6 +24,7 @@ gchar lxtermc_usage[] = {
 	"  -e, --command <string>     execute <string> in terminal\n"
 	"  -l, --login-shell          execute login shell\n"
 	"  -c, --config <fname>       use file <fname> instead of user or system config\n"
+	"  --config-ro <fname>        load <fname> as config, but do not alter it\n"
 	"  -t, -T, --title <title>    set <title> as terminal window title\n"
 	"  --tabs <n1>[,<n2>[...]]    start tabs with names\n"
 	"  --working-directory <dir>  set <dir> as working directory\n"
@@ -115,6 +116,10 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 		}
 		if (lxtc_opt(argc, argv, &at, &(cargs->cfg), 2, "-c", "--config"))
 			continue;
+		if (lxtc_opt(argc, argv, &at, &(cargs->cfg), 2, "--config-ro")) {
+			cargs->cfg_ro = true;
+			continue;
+		}
 		if (lxtc_opt(argc, argv, &at, &(cargs->title), 3, "-t", "-T", "--title"))
 			continue;
 		if (lxtc_opt(argc, argv, &at, NULL, 1, "--tabs")) {
@@ -153,7 +158,7 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 }
 
 static void
-free_and_unset(char **ptr)
+lxtc_free_and_unset(char **ptr)
 {
 	if (!ptr) return;
 	g_free(*ptr);
@@ -172,10 +177,10 @@ lxtermc_clear_cmdargs(cmdargs_t **cargs)
 	// (*cargs)->exe is pointer to char
 	// &((*cargs)->exe) is pointer to the pointer to the char
 
-	free_and_unset(&((*cargs)->exec));
-	free_and_unset(&((*cargs)->cfg));
-	free_and_unset(&((*cargs)->title));
-	free_and_unset(&((*cargs)->locale));
+	lxtc_free_and_unset(&((*cargs)->exec));
+	lxtc_free_and_unset(&((*cargs)->cfg));
+	lxtc_free_and_unset(&((*cargs)->title));
+	lxtc_free_and_unset(&((*cargs)->locale));
 	*cargs = NULL;
 }
 
