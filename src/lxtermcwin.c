@@ -1,7 +1,11 @@
 /**/
 
+#include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <locale.h>
+#include <sys/types.h>		// this and next for getpwuid
+#include <pwd.h>
+#include <vte/vte.h>
 
 #include "lxtermcapp.h"
 #include "lxtermcwin.h"
@@ -14,50 +18,17 @@ struct _LxtermcWin {
 	gchar *label;
 	cmdargs_t *cmdargs;
 	lxtermccfg_t *cfg;
+	GtkWidget *box;			// vertical: menu + notebook
+	GtkWidget *menu;
+	GtkWidget *notebook;
+
+	GtkWidget *vtebox;		// horizontal: vte + scrollbar
+	GtkWidget *vte;
+	GtkWidget *vtescroll;
 };
 
 G_DEFINE_TYPE(LxtermcWin, lxtermc_win, GTK_TYPE_APPLICATION_WINDOW)
-/*
-char lxtermc_ui[] =
-'<?xml version="1.0" encoding="UTF-8"?>
-<interface>
-  <object id="window" class="GtkWindow">
-    <property name="title">Grid</property>
-    <child>
-      <object id="grid" class="GtkGrid">
-        <child>
-          <object id="button1" class="GtkButton">
-            <property name="label">Button 1</property>
-            <layout>
-              <property name="column">0</property>
-              <property name="row">0</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object id="button2" class="GtkButton">
-            <property name="label">Button 2</property>
-            <layout>
-              <property name="column">1</property>
-              <property name="row">0</property>
-            </layout>
-          </object>
-        </child>
-        <child>
-          <object id="quit" class="GtkButton">
-            <property name="label">Quit</property>
-            <layout>
-              <property name="column">0</property>
-              <property name="row">1</property>
-              <property name="column-span">2</property>
-            </layout>
-          </object>
-        </child>
-      </object>
-    </child>
-  </object>
-</interface>';
-*/
+
 void
 lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs)
 {
@@ -69,6 +40,30 @@ lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs)
 	win->cmdargs = cargs;
 }
 
+static const gchar *
+lxtermc_preferred_shell()
+{
+	const gchar *fallback = LXTERMC_FALLBACK_SHELL;
+	const gchar *shell = g_getenv("SHELL");
+	if (geteuid() == getuid() && getegid() == getgid()
+		&& shell != NULL && !access(shell, X_OK)) return shell;
+
+	struct passwd *pw = getpwuid(getuid());
+	if (pw && pw->pw_shell && !access(pw->pw_shell, X_OK)) return pw->pw_shell;
+
+	if (access(fallback, X_OK)) return fallback;
+
+	return NULL;
+}
+
+static void
+lxtermc_spawn_async_callback(VteTerminal *vte, int pid, GError *error, void *data)
+{
+	char *fn = "lxtermc_spawn_async_callback()";
+	g_print("%s - check! - pid: %i - error: %p, data: %p\n",
+		fn, pid, (void *)error, data);
+}
+
 void
 lxtermc_win_construct(LxtermcWin *win)
 {
@@ -77,9 +72,8 @@ lxtermc_win_construct(LxtermcWin *win)
 //	GtkBuilder *builder = gtk_builder_new_from_string(lxtermc_ui, strlen(lxtermc_ui)-1);
 
 	// set title and everything else according to cargs and preferences
-	// populate window
-	
-	g_print("%s - '%s' - setting new window title to %s\n", fn, win->label,
+	win->cfg = lxtermc_load_cfg(win->cmdargs->cfg);
+	g_print("%s - '%s' - setting new window title to '%s'\n", fn, win->label,
 		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
 
 	gtk_window_set_title(GTK_WINDOW(win),
@@ -87,6 +81,47 @@ lxtermc_win_construct(LxtermcWin *win)
 	gtk_window_set_default_size(GTK_WINDOW(win),
 		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
 
+	// populate window
+	win->notebook = gtk_notebook_new();
+	win->vtebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+	win->vtescroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
+	win->vte = vte_terminal_new();
+
+	GtkWidget *test_vte = lxtermc_vte_new();
+
+	gtk_notebook_set_group_name(GTK_NOTEBOOK(win->notebook), LXTERMC_APP_ID);
+
+	gtk_box_append(GTK_BOX(win->vtebox), win->vte);
+	gtk_box_append(GTK_BOX(win->vtebox), win->vtescroll);
+	gtk_window_set_child(GTK_WINDOW(win), win->vtebox);
+
+	gtk_widget_set_visible(win->vtescroll, TRUE);
+	gtk_widget_set_visible(win->vte, TRUE);
+	gtk_widget_set_visible(win->vtebox, TRUE);
+
+	gchar **exec = g_malloc(3*sizeof(gchar *));
+	exec[0] = g_strdup(lxtermc_preferred_shell());
+	exec[1] = g_path_get_basename(exec[0]);		// TODO: user provided path
+	exec[2] = NULL;
+
+	vte_terminal_spawn_async(
+		VTE_TERMINAL(win->vte),	// terminal
+		VTE_PTY_DEFAULT,	// flagse
+		g_get_current_dir(),	// working directory
+		exec,			// child argv
+		NULL,			// envv
+		G_SPAWN_SEARCH_PATH | G_SPAWN_FILE_AND_ARGV_ZERO,
+		NULL,			// child setup func (virtually useless)
+		NULL,			// child setup data
+		NULL,			// child setup data destroy
+		-1,			// default timeout
+		NULL,			// cancellable
+		lxtermc_spawn_async_callback,	// spawn callback
+		NULL);			// callback user data
+	g_strfreev(exec);
+
+//	gtk_range_set_adjustment(GTK_RANGE(win->vtescroll),
+//		gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(win->vte)));
 }
 
 gboolean

@@ -13,36 +13,10 @@ struct _LxtermcApp {
 	// subclass instance variables
 	gchar *label;
 	cmdargs_t *cmdargs;		// temporary ownership, transferred to lxtermwin instance
-	//GPtrArray *lxwins;		// array of pointers to lxtermcwin instances
+//	GPtrArray *lxwins;		// array of pointers to lxtermcwin instances
 };
 
 G_DEFINE_TYPE(LxtermcApp, lxtermc_app, GTK_TYPE_APPLICATION)
-/*
-static void
-print_hello(GtkWidget *w, gpointer data)
-{
-	g_print(_("Hello!"));
-	g_print(" -> w at: %p - data at: %p\n", (void *)w, (void *)data);
-}
-*/
-/*
-static void
-display_locale(GtkWidget *w, gpointer data)
-{
-	char *fn = "display_locale()";
-	g_print("%s - w at: %p - data at: %p\n", fn, (void *)w, (void *)data);
-
-	g_print("%s - current msg locale    : %s\n", fn, setlocale(LC_MESSAGES, NULL));
-	g_print("%s - current base dir      : %s\n", fn, bindtextdomain(GETTEXT_PACKAGE, NULL));
-	g_print("%s - current codeset       : %s\n", fn, bind_textdomain_codeset(GETTEXT_PACKAGE, NULL));
-	g_print("%s - current text domain   : %s\n", fn, textdomain(NULL));
-	g_print("%s - gettext('Hello!')     : %s\n", fn, gettext("Hello!"));
-	g_print("%s - gettext('Locale')     : %s\n", fn, gettext("Locale"));
-	g_print("%s - gettext('Welcome!')   : %s\n", fn, gettext("Welcome!"));
-	g_print("%s - gettext('Hello gtk4') : %s\n", fn, gettext("Hello gtk4"));
-	g_print("%s - gettext('Exit')       : %s\n", fn, gettext("Exit"));
-}
-*/
 /*
 static void
 lxtermc_app_open(GApplication *app, GFile **files, int nfiles, const char *hint)
@@ -67,6 +41,7 @@ lxtermc_app_activate(GApplication *app)
 
 	LxtermcWin *win = lxtermc_win_new(lxapp, label);
 	g_free(label);
+// TODO: is it necessary to keep track of wins???
 
 	// transfer cmdargs struct ownership to the new window
 	lxtermc_win_set_cmdargs(win, lxapp->cmdargs);
@@ -131,6 +106,24 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 	}
 	g_strfreev(argv);
 
+	if (!lxapp->cmdargs->cfg) {
+		gchar **cfg = &(lxapp->cmdargs->cfg);
+		g_print("%s - no config provided, try finding user's...\n", fn);
+		const gchar *usercfgdir = g_get_user_config_dir();
+		*cfg = g_build_filename(usercfgdir, LXTERMC_NAME ".conf", NULL);
+		if (!g_file_test(*cfg, G_FILE_TEST_EXISTS)) {
+			g_free(*cfg);
+			g_print("%s - user config not found, try finding system's...\n", fn);
+			*cfg = g_build_filename(LXTERMC_DATA_DIR, LXTERMC_NAME".conf", NULL);
+			if (!g_file_test(*cfg, G_FILE_TEST_EXISTS)) {
+				g_free(*cfg);
+				g_print("%s - no config found, will be using defaults\n", fn);
+				*cfg = NULL;
+			}
+		}
+		if (*cfg) g_print("%s - '%s' used as config\n", fn, *cfg);
+	}
+
 	if (!lxapp->cmdargs->locale)
 		lxapp->cmdargs->locale = g_strdup(LXTERMC_DEFAULT_LOCALE);
 	setlocale(LC_ALL, "");
@@ -140,28 +133,8 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 	textdomain(GETTEXT_PACKAGE);
 
-	// TODO: select cfg file
-	if (!lxapp->cmdargs->cfg) {
-		g_print("%s - no config provided, find system or user...\n", fn);
-		const gchar *usercfgdir = g_get_user_config_dir();
-		g_print("%s - usercfgdir: %s\n", fn, usercfgdir);
-		g_print("%s - fname: %s\n", fn, LXTERMC_NAME ".conf");
-		gchar *user_cfg = g_build_filename(usercfgdir, LXTERMC_NAME ".conf", NULL);
-		gchar *system_cfg = g_build_filename(LXTERMC_DATA_DIR, LXTERMC_NAME".conf", NULL);
-		if (!g_file_test(user_cfg, G_FILE_TEST_EXISTS)) {
-			g_print("%s - '%s' does not exist\n", fn, user_cfg);
-		}
-		if (!g_file_test(system_cfg, G_FILE_TEST_EXISTS)) {
-			g_print("%s - '%s' does not exist\n", fn, system_cfg);
-		}
-		g_print("%s - user cfg   : %s\n", fn, user_cfg);
-		g_print("%s - system cfg : %s\n", fn, system_cfg);
-		g_free(user_cfg);
-		g_free(system_cfg);
-	}
-
 	// this implementation needs an explicit activation signal...
-	// (or open, if that kind of argument was to be accepter, for this impl
+	// (or open, if that kind of argument was to be accepter, for this impl (so far)
 	// the only possible way is through -e --command arguments)
 	g_application_activate(G_APPLICATION(app));
 	g_print("%s - end\n", fn);
@@ -190,6 +163,8 @@ lxtermc_app_finalize(GObject *obj)
 		g_print("%s - cmdargs needs freeing - why???\n", fn);
 		lxtermc_clear_cmdargs(&(lxapp->cmdargs));
 	}
+//	g_ptr_array_foreach(lxapp->lxwins, lxtermc_win_destroy, lxapp->);
+
 	G_OBJECT_CLASS(lxtermc_app_parent_class)->finalize(obj);
 }
 

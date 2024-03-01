@@ -5,7 +5,8 @@
 #include "lxtermc.h"
 #include "lxtermccfg.h"
 
-colorpreset_t color_sets[] = {
+// TODO: update to rgba
+colorset_t color_sets[] = {
 	{
 		.name = "lxtermc",	// TODO: now VGA, define new... 
 		.bg_color = "#000000",
@@ -70,89 +71,17 @@ colorpreset_t color_sets[] = {
 		.name = "Custom"
 	}
 };
+#define NUM_COLOR_SETS 7
 
 static void
 free_and_unset_cfg(lxtermccfg_t **cfg)
 {
-	g_free((*cfg)->keyfile);
-	g_free((*cfg)->config);
+	g_key_file_free((*cfg)->keyfile);
+//	g_free((*cfg)->config);
 	g_free((*cfg)->tab_pos);
 	g_free(*cfg);
 }
 
-static lxtermccfg_t *
-create_default_cfg()
-{
-	lxtermccfg_t *copy = g_new0(lxtermccfg_t, 1);
-	copy->keyfile = g_key_file_new();
-	copy->config = NULL;
-//	copy->preset_color = color_sets[0].name;
-	if (!gdk_rgba_parse(&(copy->palette[0]), color_sets[0].palette[0])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[1]), color_sets[0].palette[1])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[2]), color_sets[0].palette[2])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[3]), color_sets[0].palette[3])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[4]), color_sets[0].palette[4])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[5]), color_sets[0].palette[5])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[6]), color_sets[0].palette[6])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[7]), color_sets[0].palette[7])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[8]), color_sets[0].palette[8])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[9]), color_sets[0].palette[9])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[10]), color_sets[0].palette[10])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[11]), color_sets[0].palette[11])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[12]), color_sets[0].palette[12])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[13]), color_sets[0].palette[13])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[14]), color_sets[0].palette[14])) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->palette[15]), color_sets[0].palette[15])) goto FAIL;
-	copy->geometry_change = FALSE;
-
-	// in keyfile
-	if (!gdk_rgba_parse(&(copy->bg_color), color_sets[0].bg_color)) goto FAIL;
-	if (!gdk_rgba_parse(&(copy->fg_color), color_sets[0].fg_color)) goto FAIL;
-	copy->disallow_bold = FALSE;
-	copy->bold_bright = FALSE;
-	copy->cursor_blink = FALSE;
-	copy->cursor_underline = FALSE;
-	copy->audible_bell = FALSE;
-	copy->visual_bell = FALSE;
-	copy->tab_pos = g_strdup("top");
-//	copy->word_delim = g_strdup(###############);
-	copy->scrollback = LXTERMC_DEFAULT_SCROLLBACK;
-	copy->cols = LXTERMC_DEFAULT_COLS;
-	copy->rows = LXTERMC_DEFAULT_ROWS;
-	copy->hide_scrollbar = FALSE;
-	copy->hide_menubar = FALSE;
-	copy->hide_close_button = FALSE;
-	copy->hide_pointer = FALSE;
-	copy->disable_f10 = FALSE;
-	copy->disable_alt = FALSE;
-	copy->disable_confirm = FALSE;
-	g_file_set_string(copy->keyfile, LXTERMC_NAME, "bg_color", color_sets[0].bg_color);
-	g_file_set_string(copy->keyfile, LXTERMC_NAME, "fg_color", color_sets[0].fg_color);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "disallow_bold", copy->disallow_bold);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "bold_bright", copy->bold_bright);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "cursor_blink", copy->cursor_blink);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "cursor_underline", copy->cursor_underline);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "audible_bell", copy->audible_bell);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "visible_bell", copy->visible_bell);
-	g_file_set_string(copy->keyfile, LXTERMC_NAME, "tab_pos", copy->tab_pos);
-//	g_file_set_string(copy->keyfile, LXTERMC_NAME, "word_delim", copy->word_delim);
-	g_file_set_integer(copy->keyfile, LXTERMC_NAME, "scrollback", copy->scrollback);
-	g_file_set_integer(copy->keyfile, LXTERMC_NAME, "cols", copy->cols);
-	g_file_set_integer(copy->keyfile, LXTERMC_NAME, "rows", copy->rows);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "hide_scrollbar", copy->hide_scrollbar);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "hide_menubar", copy->hide_menubar);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "hide_close_button", copy->hide_close_button);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "hide_pointer", copy->hide_pointer);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "disable_f10", copy->disable_f10);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "disable_alt", copy->disable_alt);
-	g_file_set_boolean(copy->keyfile, LXTERMC_NAME, "disable_confirm", copy->disable_confirm);
-
-	return copy;
-
-	FAIL:
-	free_and_unset_cfg(&copy);
-	return NULL;
-}
 /*
 lxtermccfg_t *
 lxtermccfg_copy(lxtermccfg_t *cfg)
@@ -166,21 +95,118 @@ lxtermccfg_copy(lxtermccfg_t *cfg)
 }
 */
 /* save cfg to cfg-> */
+/*
 void
 lxtermc_save_cfg(lxtermccfg_t *cfg)
 {
+	// from GdkRGBA to hex
+	// g_strdup_printf("#%02x%02x%02x", (unsigned int)rgba.red*255, ...);
+}
+*/
 
+// assume parsing of color_sets (from above) works
+static void
+set_rgba(GKeyFile *kf, gchar *key, GdkRGBA *rgba, const char *rgba_str)
+{
+	gchar *str = NULL;
+	if ((str = g_key_file_get_string(kf, MAIN_GROUP, key, NULL))
+		&& !gdk_rgba_parse(rgba, str)) gdk_rgba_parse(rgba, rgba_str);
+	g_free(str);
 }
 
-/* load config from <cfg_fname>, if NULL, or if reading and/or parsing loading from file fails,
- * load default settings instead,
+static void
+set_boolean(GKeyFile *kf, gchar *key, gboolean *ptr, gboolean default_value)
+{
+	GError *err = NULL;
+	*ptr = g_key_file_get_boolean(kf, MAIN_GROUP, key, &err);
+	if (err) {
+		*ptr = default_value;
+		g_error_free(err);
+	}
+}
+
+static void
+set_integer(GKeyFile *kf, gchar *key, gint *ptr, gint default_value)
+{
+	GError *err = NULL;
+	*ptr = g_key_file_get_integer(kf, MAIN_GROUP, key, &err);
+	if (err) {
+		*ptr = default_value;
+		g_error_free(err);
+	}
+}
+
+/* load config from <cfg_fname>, if NULL, or if reading and/or parsing from file fails,
+ * use default settings instead,
  * return pointer to allocated struct, new struct is owned by caller
  */
 lxtermccfg_t *
 lxtermc_load_cfg(char *cfg_fname)
 {
-	if (cfg_fname == NULL || !g_file_test(cfg_fname, G_FILE_TEST_EXISTS))
-		return create_default_cfg();
+	char *fn = "lxtermc_load_cfg()";
+	g_print("%s - loading '%s'\n", fn, cfg_fname);
+	lxtermccfg_t *copy = g_new0(lxtermccfg_t, 1);
+	GKeyFile *kf = copy->keyfile = g_key_file_new();
+	GError *error = NULL;
+	if (cfg_fname && g_file_test(cfg_fname, G_FILE_TEST_EXISTS)) {
+		GKeyFileFlags flags = G_KEY_FILE_KEEP_COMMENTS | G_KEY_FILE_KEEP_TRANSLATIONS;
+		if (!g_key_file_load_from_file(kf, cfg_fname, flags, &error)) {
+			g_print("%s - failed to load settings from '%s'", fn, cfg_fname);
+			g_print("%s - error message: %s\n", fn, error->message);
+		}
+		g_error_free(error);
+	}
+	if (cfg_fname && !g_key_file_has_group(kf, MAIN_GROUP)) {
+		g_print("%s - config file has no [%s] group\n", fn, MAIN_GROUP);
+	}
+	gchar *key_str = NULL;
+	int set_index = 0;	// default palette
+	if (!(key_str = g_key_file_get_string(kf, MAIN_GROUP, PRESET_COLOR, NULL))) {
+		copy->preset_color = color_sets[0].name;
+	} else {
+		for (int i = 0; i < NUM_COLOR_SETS; i++) {
+			if (!g_strcmp0(key_str, color_sets[i].name)) {
+				copy->preset_color = color_sets[i].name;
+				set_index = i;
+				break;
+			}
+		}
+		g_free(key_str);
+	}
 
+	// load palette
+	// TODO:
+
+	copy->geometry_change = FALSE;
+
+	// in keyfile
+	set_rgba(kf, BG_COLOR, &copy->bg_color, color_sets[0].bg_color);
+	set_rgba(kf, FG_COLOR, &copy->fg_color, color_sets[0].fg_color);
+	
+	set_boolean(kf, DISALLOW_BOLD, &copy->disallow_bold, LXTERMC_DEFAULT_DISALLOW_BOLD);
+	set_boolean(kf, BOLD_BRIGHT, &copy->bold_bright, LXTERMC_DEFAULT_BOLD_BRIGHT);
+	set_boolean(kf, CURSOR_BLINK, &copy->cursor_blink, LXTERMC_DEFAULT_CURSOR_BLINK);
+	set_boolean(kf, CURSOR_UNDERLINE, &copy->cursor_underline, LXTERMC_DEFAULT_CURSOR_UNDERLINE);
+	set_boolean(kf, AUDIBLE_BELL, &copy->audible_bell, LXTERMC_DEFAULT_AUDIBLE_BELL);
+	set_boolean(kf, VISUAL_BELL, &copy->visual_bell, LXTERMC_DEFAULT_VISUAL_BELL);
+
+	set_integer(kf, SCROLLBACK, &copy->scrollback, LXTERMC_DEFAULT_SCROLLBACK);
+	set_integer(kf, COLS, &copy->cols, LXTERMC_DEFAULT_COLS);
+	set_integer(kf, ROWS, &copy->rows, LXTERMC_DEFAULT_ROWS);
+
+	set_boolean(kf, HIDE_SCROLLBAR, &copy->hide_scrollbar, LXTERMC_DEFAULT_HIDE_SCROLLBAR);
+	set_boolean(kf, HIDE_MENUBAR, &copy->hide_menubar, LXTERMC_DEFAULT_HIDE_MENUBAR);
+	set_boolean(kf, HIDE_CLOSE_BUTTON, &copy->hide_close_button, LXTERMC_DEFAULT_HIDE_CLOSE_BUTTON);
+	set_boolean(kf, HIDE_POINTER, &copy->hide_pointer, LXTERMC_DEFAULT_HIDE_POINTER);
+	set_boolean(kf, DISABLE_F10, &copy->disable_f10, LXTERMC_DEFAULT_DISABLE_F10);
+	set_boolean(kf, DISABLE_ALT, &copy->disable_alt, LXTERMC_DEFAULT_DISABLE_ALT);
+	set_boolean(kf, DISABLE_CONFIRM, &copy->disable_confirm, LXTERMC_DEFAULT_DISABLE_CONFIRM);
+
+	return copy;
+/*
+	FAIL:
+	g_free(key_str);
+	free_and_unset_cfg(&copy);
 	return NULL;
+*/
 }

@@ -20,7 +20,10 @@ add_project_arguments(
 	language: 'c'
 )
 
-gtkdeps = [dependency('gtk4', version: '>=4.0')]
+gtkdeps = [
+	dependency('gtk4', version: '>=4.0'),
+	dependency('vte-2.91-gtk4', version: '>=0.74.2')
+]
 
 subdir('po')
 
