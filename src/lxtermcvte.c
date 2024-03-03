@@ -10,28 +10,23 @@
 #include "lxtermcapp.h"
 #include "lxtermcwin.h"
 #include "lxtermccfg.h"
+#include "lxtermcvte.h"
 #include "lxtermc.h"
 
 struct _LxtermcVte {
-	GtkApplicationWindow parent_instance;
+	GtkWidget parent_instance;
 	// subclass instance variables
 	gchar *label;
 	lxtermccfg_t *cfg;		// pointer to parent window cfg
-/*
-	GtkWidget *box;			// vertical: menu + notebook
-	GtkWidget *menu;
-	GtkWidget *notebook;
 
-	GtkWidget *vtebox;		// horizontal: vte + scrollbar
 	GtkWidget *vte;
-	GtkWidget *vtescroll;
-*/
+	GtkWidget *scroll;
 };
 
-G_DEFINE_TYPE(LxtermcVte, lxtermc_vte, GTK_TYPE_WIDGET)
+G_DEFINE_TYPE(LxtermcVte, lxtermc_vte, GTK_TYPE_BOX)
 
 static const gchar *
-lxtermc_preferred_shell()
+lxvte_preferred_shell()
 {
 	const gchar *fallback = LXTERMC_FALLBACK_SHELL;
 	const gchar *shell = g_getenv("SHELL");
@@ -47,7 +42,7 @@ lxtermc_preferred_shell()
 }
 
 static void
-lxtermc_spawn_async_callback(VteTerminal *vte, int pid, GError *error, void *data)
+lxvte_spawn_async_callback(VteTerminal *vte, int pid, GError *error, void *data)
 {
 	char *fn = "lxtermc_spawn_async_callback()";
 	g_print("%s - check! - pid: %i - error: %p, data: %p\n",
@@ -55,74 +50,59 @@ lxtermc_spawn_async_callback(VteTerminal *vte, int pid, GError *error, void *dat
 }
 
 void
-lxtermc_vte_construct(LxtermcVte *vte)
+lxtermc_vte_construct(LxtermcVte *lxvte)
 {
 	char *fn = "lxtermc_vte_construct()";
-	g_print("%s - '%s' - at: %p\n", fn, vte->label, (void *)vte);
-//	GtkBuilder *builder = gtk_builder_new_from_string(lxtermc_ui, strlen(lxtermc_ui)-1);
+	g_print("%s - '%s' - at: %p\n", fn, lxvte->label, (void *)lxvte);
 
-	// set title and everything else according to cargs and preferences
-//	win->cfg = lxtermc_load_cfg(win->cmdargs->cfg);
-//	g_print("%s - '%s' - setting new window title to '%s'\n", fn, win->label,
-//		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
+	// populate the vte box
 
-//	gtk_window_set_title(GTK_WINDOW(win),
-//		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
-//	gtk_window_set_default_size(GTK_WINDOW(win),
-//		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
+	lxvte->scroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
+	lxvte->vte = vte_terminal_new();
+	gtk_range_set_adjustment(GTK_RANGE(lxvte->scroll),
+		gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(lxvte->vte)));
 
-	// populate window
-/*
-	win->notebook = gtk_notebook_new();
-	win->vtebox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-	win->vtescroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
-	win->vte = vte_terminal_new();
+	gtk_box_append(GTK_BOX(lxvte), lxvte->vte);
+	gtk_box_append(GTK_BOX(lxvte), lxvte->scroll);
 
-	gtk_notebook_set_group_name(GTK_NOTEBOOK(win->notebook), LXTERMC_APP_ID);
-
-	gtk_box_append(GTK_BOX(win->vtebox), win->vte);
-	gtk_box_append(GTK_BOX(win->vtebox), win->vtescroll);
-	gtk_window_set_child(GTK_WINDOW(win), win->vtebox);
-
-	gtk_widget_set_visible(win->vtescroll, TRUE);
-	gtk_widget_set_visible(win->vte, TRUE);
-	gtk_widget_set_visible(win->vtebox, TRUE);
+	gtk_widget_set_visible(lxvte->scroll, TRUE);
+	gtk_widget_set_visible(lxvte->vte, TRUE);
+	gtk_widget_set_visible(GTK_WIDGET(lxvte), TRUE);
 
 	gchar **exec = g_malloc(3*sizeof(gchar *));
-	exec[0] = g_strdup(lxtermc_preferred_shell());
+	exec[0] = g_strdup(lxvte_preferred_shell());
 	exec[1] = g_path_get_basename(exec[0]);		// TODO: user provided path
 	exec[2] = NULL;
 
 	vte_terminal_spawn_async(
-		VTE_TERMINAL(vte),	// terminal
-		VTE_PTY_DEFAULT,	// flagse
-		g_get_current_dir(),	// working directory
-		exec,			// child argv
-		NULL,			// envv
+		VTE_TERMINAL(lxvte->vte),	// terminal
+		VTE_PTY_DEFAULT,		// flagse
+		g_get_current_dir(),		// working directory
+		exec,				// child argv
+		NULL,				// envv
 		G_SPAWN_SEARCH_PATH | G_SPAWN_FILE_AND_ARGV_ZERO,
-		NULL,			// child setup func (virtually useless)
-		NULL,			// child setup data
-		NULL,			// child setup data destroy
-		-1,			// default timeout
-		NULL,			// cancellable
-		lxtermc_spawn_async_callback,	// spawn callback
-		NULL);			// callback user data
+		NULL,				// child setup func (virtually useless)
+		NULL,				// child setup data
+		NULL,				// child setup data destroy
+		-1,				// default timeout
+		NULL,				// cancellable
+		lxvte_spawn_async_callback,	// spawn callback
+		NULL);				// callback user data
 	g_strfreev(exec);
-*/
 }
 
 static void lxtermc_vte_dispose(GObject *obj)
 {
 	gchar *fn = "lxtermc_vte_dispose()";
-	LxtermcVte *vte = LXTERMC_WIN(obj);
+	LxtermcVte *vte = LXTERMC_VTE(obj);
 	g_print("%s - '%s' - at: %p\n", fn, vte->label, (void *)vte);
-	G_OBJECT_CLASS(lxtermc_win_parent_class)->dispose(obj);
+	G_OBJECT_CLASS(lxtermc_vte_parent_class)->dispose(obj);
 }
 
 static void lxtermc_vte_finalize(GObject *obj)
 {
 	gchar *fn = "lxtermc_vte_finalize()";
-	LxtermcVte *vte = LXTERMC_WIN(obj);
+	LxtermcVte *vte = LXTERMC_VTE(obj);
 	g_print("%s - '%s' - at: %p\n", fn, vte->label, (void *)vte);
 	g_free(vte->label);
 	vte->label = NULL;
@@ -150,7 +130,7 @@ LxtermcVte *
 lxtermc_vte_new(const gchar *label, lxtermccfg_t *cfg)
 {
 	g_print("lxtermc_vte_new() - '%s'\n", label);
-	LxtermcVte *vte = g_object_new(LXTERMC_TYPE_VTE, "application", NULL);
+	LxtermcVte *vte = g_object_new(LXTERMC_TYPE_VTE, NULL);
 	vte->label = g_strdup(label);
 	vte->cfg = cfg;
 	return vte;

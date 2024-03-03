@@ -39,8 +39,9 @@ lxtermc_app_activate(GApplication *app)
 	guint numwin = g_list_length(winlist);
 	gchar *label = g_strdup_printf("= win label #%u =", numwin+1);
 
-	LxtermcWin *win = lxtermc_win_new(lxapp, label);
+	LxtermcWin *win = lxtermc_win_new(lxapp, label); // calls win: class_init() & init()
 	g_free(label);
+
 // TODO: is it necessary to keep track of wins???
 
 	// transfer cmdargs struct ownership to the new window
@@ -48,27 +49,6 @@ lxtermc_app_activate(GApplication *app)
 	lxapp->cmdargs = NULL;
 
 	lxtermc_win_construct(win);
-/*
-	GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-	gtk_widget_set_halign(box, GTK_ALIGN_CENTER);
-	gtk_widget_set_valign(box, GTK_ALIGN_CENTER);
-
-	gtk_window_set_child(GTK_WINDOW(win), box);
-
-	GtkWidget *hello_button = gtk_button_new_with_label(_("Hello gtk4"));
-	g_signal_connect(hello_button, "clicked", G_CALLBACK(print_hello), NULL);
-
-	GtkWidget *locale_button = gtk_button_new_with_label(_("Locale"));
-	g_signal_connect(locale_button, "clicked", G_CALLBACK(display_locale), NULL);
-
-	GtkWidget *close_button = gtk_button_new_with_label(_("Exit"));
-	g_signal_connect_swapped(close_button, "clicked", G_CALLBACK(lxtermc_win_close), win);
-//	g_signal_connect_swapped(close_button, "clicked", G_CALLBACK(lxtermc_win_destroy), win);
-
-	gtk_box_append(GTK_BOX(box), hello_button);
-	gtk_box_append(GTK_BOX(box), locale_button);
-	gtk_box_append(GTK_BOX(box), close_button);
-*/
 	gtk_window_present(GTK_WINDOW(win));
 
 	g_print("%s - end\n", fn);

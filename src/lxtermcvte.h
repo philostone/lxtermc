@@ -1,17 +1,17 @@
 /**/
 
-#ifndef _lxtermcwin_h_
-#define _lxtermcwin_h_
+#ifndef _lxtermcvte_h_
+#define _lxtermcvte_h_
 
 #include <glib.h>
 #include <gtk/gtk.h>
 
-#include "lxtermc.h"
+//#include "lxtermc.h"
 #include "lxtermccfg.h"
 
 G_BEGIN_DECLS
 
-#define LXTERMC_TYPE_WIN (lxtermc_vte_get_type())
+#define LXTERMC_TYPE_VTE (lxtermc_vte_get_type())
 
 /* macro defined in gobject/gtype.h - expands to the following:
  *	GType module_obj_name##_get_type(void);
@@ -29,15 +29,11 @@ G_BEGIN_DECLS
  *	G_GNUC_END_IGNORE_DEPRECATIONS -> _Pragma pop
  *
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
-G_DECLARE_FINAL_TYPE(LxtermcVte,    lxtermc_vte,    LXTERMC, VTE,      GtkWidget)
+G_DECLARE_FINAL_TYPE(LxtermcVte,    lxtermc_vte,    LXTERMC, VTE,      GtkBox)
 
 LxtermcVte *lxtermc_vte_new(const gchar *label, lxtermccfg_t *cfg);
-//void lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs);
-//void lxtermc_win_construct(LxtermcWin *win);
-
-//void lxtermc_win_destroy(LxtermcWin *win);
-//gboolean lxtermc_win_close(GtkWindow *win);
+void lxtermc_vte_construct(LxtermcVte *vte);
 
 G_END_DECLS
 
-#endif /* _lxtermcwin_h_ */
+#endif /* _lxtermcvte_h_ */
