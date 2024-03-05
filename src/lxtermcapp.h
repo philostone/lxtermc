@@ -6,7 +6,7 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
-//#include "lxtermc.h"
+#include "lxtermc.h"
 
 G_BEGIN_DECLS
 
@@ -31,6 +31,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE(LxtermcApp,    lxtermc_app,    LXTERMC, APP,      GtkApplication)
 
 LxtermcApp *lxtermc_app_new(const gchar *label);
+cmdargs_t *lxtermc_app_steal_cmdargs(LxtermcApp *app);
 
 G_END_DECLS
 

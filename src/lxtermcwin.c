@@ -28,18 +28,6 @@ struct _LxtermcWin {
 G_DEFINE_TYPE(LxtermcWin, lxtermc_win, GTK_TYPE_APPLICATION_WINDOW)
 
 void
-lxtermc_win_set_cmdargs(LxtermcWin *win, cmdargs_t *cargs)
-{
-	char *fn ="lxtermc_win_set_cmdargs()";
-	g_print("%s - check!\n", fn);
-	if (win->cmdargs) {
-		g_print("%s - freeing former set of args...\n", fn);
-		lxtermc_clear_cmdargs(&(win->cmdargs));
-	}
-	win->cmdargs = cargs;
-}
-
-void
 lxtermc_win_construct(LxtermcWin *win)
 {
 	char *fn = "lxtermc_win_construct()";
@@ -124,8 +112,9 @@ lxtermc_win_class_init(LxtermcWinClass *class)
 static void
 lxtermc_win_init(LxtermcWin *win)
 {
-	g_print("lxtermc_win_init() - win at: %p\n", (void *)win);
-	// initializations
+	char *fn = "lxtermc_win_init()";
+	g_print("%s - at: %p\n", fn, (void *)win);
+	// initializations - during g_object_new() call
 }
 
 LxtermcWin *
@@ -135,5 +124,6 @@ lxtermc_win_new(LxtermcApp *app, const gchar *label)
 	LxtermcWin *win = g_object_new(LXTERMC_TYPE_WIN, "application", app, NULL);
 //	LxtermcWin *win = gtk_application_window_new(GTK_APPLICATION(app));
 	win->label = g_strdup(label);
+	win->cmdargs = lxtermc_app_steal_cmdargs(app);
 	return win;
 }

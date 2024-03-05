@@ -30,6 +30,7 @@ G_BEGIN_DECLS
  *
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
 G_DECLARE_FINAL_TYPE(LxtermcVte,    lxtermc_vte,    LXTERMC, VTE,      GtkBox)
+//G_DECLARE_FINAL_TYPE(LxtermcVte,    lxtermc_vte,    LXTERMC, VTE,      GtkBox)
 
 LxtermcVte *lxtermc_vte_new(const gchar *label, lxtermccfg_t *cfg);
 void lxtermc_vte_construct(LxtermcVte *vte);

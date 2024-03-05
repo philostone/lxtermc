@@ -28,9 +28,20 @@ lxtermc_app_open(GApplication *app, GFile **files, int nfiles, const char *hint)
 	g_print("%s - '%s' - hint: %s\n", fn, ((LxtermcApp *)app)->label, hint);
 }
 */
+
+cmdargs_t *
+lxtermc_app_steal_cmdargs(LxtermcApp *app)
+{
+	cmdargs_t *cargs = app->cmdargs;
+	app->cmdargs = NULL;
+	return cargs;
+}
+
 static void
 lxtermc_app_activate(GApplication *app)
 {
+	G_APPLICATION_CLASS(lxtermc_app_parent_class)->activate(app);
+
 	gchar *fn = "lxtermc_app_activate()";
 	LxtermcApp *lxapp = LXTERMC_APP(app);
 	g_print("%s - '%s' - app at: %p\n", fn, lxapp->label, (void *)app);
@@ -39,16 +50,20 @@ lxtermc_app_activate(GApplication *app)
 	guint numwin = g_list_length(winlist);
 	gchar *label = g_strdup_printf("= win label #%u =", numwin+1);
 
-	LxtermcWin *win = lxtermc_win_new(lxapp, label); // calls win: class_init() & init()
+//	lxtermc_win_set_cmdargs(win, lxapp->cmdargs);
+	// calls win: class_init() & init()
+	LxtermcWin *win = lxtermc_win_new(lxapp, label);
+	lxtermc_win_construct(win);
+
+	// win has taken over ownership of allocated cmdargs_t struct
+//	lxapp->cmdargs = NULL;
 	g_free(label);
 
 // TODO: is it necessary to keep track of wins???
 
-	// transfer cmdargs struct ownership to the new window
-	lxtermc_win_set_cmdargs(win, lxapp->cmdargs);
-	lxapp->cmdargs = NULL;
+	gtk_application_window_set_show_menubar(GTK_APPLICATION_WINDOW(win), TRUE);
 
-	lxtermc_win_construct(win);
+g_print("%s - next is win present\n", fn);
 	gtk_window_present(GTK_WINDOW(win));
 
 	g_print("%s - end\n", fn);
@@ -148,13 +163,66 @@ lxtermc_app_finalize(GObject *obj)
 	G_OBJECT_CLASS(lxtermc_app_parent_class)->finalize(obj);
 }
 
+//quit_activated(GSimpleAction *act, GVariant *param, GApplication *app)
+static void
+quit_activated(GSimpleAction *act, GVariant *param, gpointer *data)
+{
+	char *fn = "quit_activated()";
+	g_print("%s - '%s' is activated - param: %p - data: %p\n",
+		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
+	g_application_quit(G_APPLICATION(data));
+}
+
+static void
+prefs_activated(GSimpleAction *act, GVariant *param, gpointer *data)
+{
+	char *fn = "preferences_activated()";
+	g_print("%s - '%s' is activated - param: %p - data: %p\n",
+		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
+}
 static void
 lxtermc_app_startup(GApplication *app)
 {
+	G_APPLICATION_CLASS(lxtermc_app_parent_class)->startup(app);
+
 	gchar *fn = "lxtermc_app_startup()";
 	LxtermcApp *lxapp = LXTERMC_APP(app);
 	g_print("%s - '%s' - at: %p\n", fn, lxapp->label, (void *)app);
-	G_APPLICATION_CLASS(lxtermc_app_parent_class)->startup(app);
+
+	GSimpleAction *quit_act = g_simple_action_new("quit", NULL);
+	GSimpleAction *prefs_act = g_simple_action_new("prefs", NULL);
+
+	g_action_map_add_action(G_ACTION_MAP(GTK_APPLICATION(app)), G_ACTION(quit_act));
+	g_action_map_add_action(G_ACTION_MAP(GTK_APPLICATION(app)), G_ACTION(prefs_act));
+
+	g_signal_connect(quit_act, "activate", G_CALLBACK(quit_activated), app);
+	g_signal_connect(prefs_act, "activate", G_CALLBACK(prefs_activated), app);
+
+	// menubar
+	GMenu *menubar = g_menu_new();
+
+	// file menu
+	GMenu *file_menu = g_menu_new();
+	GMenuItem *quit_item = g_menu_item_new("Quit", "app.quit");
+	g_menu_append_submenu(menubar, "File", G_MENU_MODEL(file_menu));
+	g_menu_append_item(file_menu, quit_item);
+
+	// edit menu
+	GMenu *edit_menu = g_menu_new();
+	GMenuItem *prefs_item = g_menu_item_new("Preferences", "app.prefs");
+	g_menu_append_submenu(menubar, "Edit", G_MENU_MODEL(edit_menu));
+	g_menu_append_item(edit_menu, prefs_item);
+
+	// ***
+	gtk_application_set_menubar(GTK_APPLICATION(app), G_MENU_MODEL(menubar));
+
+	g_object_unref(quit_act);
+	g_object_unref(prefs_act);
+	g_object_unref(menubar);
+	g_object_unref(file_menu);
+	g_object_unref(edit_menu);
+	g_object_unref(quit_item);
+	g_object_unref(prefs_item);
 }
 
 static void

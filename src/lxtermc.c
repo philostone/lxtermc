@@ -168,8 +168,10 @@ lxtc_free_and_unset(char **ptr)
 void
 lxtermc_clear_cmdargs(cmdargs_t **cargs)
 {
+	char *fn = "lxtermc_clear_cmdargs()";
+	g_print("%s - start!\n", fn);
 	if (!cargs || !(*cargs)) {
-		g_print("lxtermc_clear_cmdargs() - nothing to free...\n");
+		g_print("%s - nothing to free...\n", fn);
 		return;
 	}
 

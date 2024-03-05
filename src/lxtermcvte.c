@@ -45,50 +45,8 @@ static void
 lxvte_spawn_async_callback(VteTerminal *vte, int pid, GError *error, void *data)
 {
 	char *fn = "lxtermc_spawn_async_callback()";
-	g_print("%s - check! - pid: %i - error: %p, data: %p\n",
-		fn, pid, (void *)error, data);
-}
-
-void
-lxtermc_vte_construct(LxtermcVte *lxvte)
-{
-	char *fn = "lxtermc_vte_construct()";
-	g_print("%s - '%s' - at: %p\n", fn, lxvte->label, (void *)lxvte);
-
-	// populate the vte box
-
-	lxvte->scroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
-	lxvte->vte = vte_terminal_new();
-	gtk_range_set_adjustment(GTK_RANGE(lxvte->scroll),
-		gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(lxvte->vte)));
-
-	gtk_box_append(GTK_BOX(lxvte), lxvte->vte);
-	gtk_box_append(GTK_BOX(lxvte), lxvte->scroll);
-
-	gtk_widget_set_visible(lxvte->scroll, TRUE);
-	gtk_widget_set_visible(lxvte->vte, TRUE);
-	gtk_widget_set_visible(GTK_WIDGET(lxvte), TRUE);
-
-	gchar **exec = g_malloc(3*sizeof(gchar *));
-	exec[0] = g_strdup(lxvte_preferred_shell());
-	exec[1] = g_path_get_basename(exec[0]);		// TODO: user provided path
-	exec[2] = NULL;
-
-	vte_terminal_spawn_async(
-		VTE_TERMINAL(lxvte->vte),	// terminal
-		VTE_PTY_DEFAULT,		// flagse
-		g_get_current_dir(),		// working directory
-		exec,				// child argv
-		NULL,				// envv
-		G_SPAWN_SEARCH_PATH | G_SPAWN_FILE_AND_ARGV_ZERO,
-		NULL,				// child setup func (virtually useless)
-		NULL,				// child setup data
-		NULL,				// child setup data destroy
-		-1,				// default timeout
-		NULL,				// cancellable
-		lxvte_spawn_async_callback,	// spawn callback
-		NULL);				// callback user data
-	g_strfreev(exec);
+	g_print("%s - vte at: %p - pid: %i - error: %p, data: %p\n",
+		fn, (void *)vte, pid, (void *)error, data);
 }
 
 static void lxtermc_vte_dispose(GObject *obj)
@@ -119,10 +77,53 @@ lxtermc_vte_class_init(LxtermcVteClass *class)
 	G_OBJECT_CLASS(class)->finalize = lxtermc_vte_finalize;
 }
 
+void
+lxtermc_vte_construct(LxtermcVte *vte)
+{
+	char *fn = "lxtermc_vte_construct()";
+	g_print("%s - '%s' - at: %p\n", fn, vte->label, (void *)vte);
+
+	vte->scroll = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, NULL);
+	vte->vte = vte_terminal_new();
+//	gtk_range_set_adjustment(GTK_RANGE(lxvte->scroll),
+//		gtk_scrollable_get_vadjustment(GTK_SCROLLABLE(lxvte->vte)));
+
+	gtk_box_append(GTK_BOX(vte), vte->vte);
+	gtk_box_append(GTK_BOX(vte), vte->scroll);
+
+	gtk_widget_set_visible(vte->scroll, TRUE);
+	gtk_widget_set_visible(vte->vte, TRUE);
+	gtk_widget_set_visible(GTK_WIDGET(vte), TRUE);
+
+	gchar **exec = g_malloc(3*sizeof(gchar *));
+	exec[0] = g_strdup(lxvte_preferred_shell());
+	exec[1] = g_path_get_basename(exec[0]);		// TODO: user provided path
+	exec[2] = NULL;
+
+	vte_terminal_spawn_async(
+		VTE_TERMINAL(vte->vte),		// terminal
+		VTE_PTY_DEFAULT,		// flagse
+		g_get_current_dir(),		// working directory
+		exec,				// child argv
+		NULL,				// envv
+		G_SPAWN_SEARCH_PATH | G_SPAWN_FILE_AND_ARGV_ZERO,
+		NULL,				// child setup func (virtually useless)
+		NULL,				// child setup data
+		NULL,				// child setup data destroy
+		-1,				// default timeout
+		NULL,				// cancellable
+		lxvte_spawn_async_callback,	// spawn callback
+		NULL);				// callback user data
+	g_strfreev(exec);
+}
+
 static void
 lxtermc_vte_init(LxtermcVte *vte)
 {
-	g_print("lxtermc_vte_init() - vte at: %p\n", (void *)vte);
+	char *fn = "lxtermc_vte_init()";
+//	g_print("lxtermc_vte_init() - vte at: %p\n", (void *)vte);
+	g_print("%s - at: %p\n", fn, (void *)vte);
+
 	// initializations
 }
 
