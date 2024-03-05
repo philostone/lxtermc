@@ -49,7 +49,6 @@ typedef struct _cmdargs {
 
 extern gchar lxtermc_usage[];
 int lxtermc_args(int argc, char **argv, cmdargs_t *cargs);
-void lxtermc_free_str(char **ptr);
 void lxtermc_clear_cmdargs(cmdargs_t **cargs);
 
 #endif /* _lxtermc_h_ */

@@ -10,8 +10,8 @@
 //#include <X11/Xlib.h>
 
 #include "lxtermc.h"
-#include "app.h"
-#include "win.h"
+#include "lxtermcapp.h"
+#include "lxtermcwin.h"
 
 gchar lxtermc_usage[] = {
 	"lxtermc - is a per window individually configurable terminal emulator\n"
@@ -39,9 +39,9 @@ gchar lxtermc_usage[] = {
  * copied to *opt_arg, if *opt_arg is not NULL, data there is freed
 */
 static int
-is_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
+lxtc_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
 {
-	char *fn = "is_opt()";
+	char *fn = "lxtc_opt()";
 	char *opt = NULL;
 	va_list ap;
 	va_start(ap, num_opts);
@@ -102,49 +102,49 @@ int
 lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 {
 	gchar *fn = "lxtermc_args()";
-	g_print("%s - parsing %i arguments (including argv[0] = '%s')\n", fn, argc, argv[0]);
+	g_print("%s - start\n", fn);
 	int at = 0;
 	//cargs->cmd = argv[0]; // not used
-	// at is set to -1 by is_opt() on error
+	// at is set to -1 by lxtc_opt() on error
 	while (++at < argc && at > 0) {
-		if (is_opt(argc, argv, &at, &(cargs->exec), 2, "-e", "--command"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->exec), 2, "-e", "--command"))
 			continue;
-		if (is_opt(argc, argv, &at, NULL, 2, "-l", "--login_shell")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 2, "-l", "--login_shell")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, &(cargs->cfg), 2, "-c", "--config"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->cfg), 2, "-c", "--config"))
 			continue;
-		if (is_opt(argc, argv, &at, &(cargs->cfg), 2, "--config-ro")) {
+		if (lxtc_opt(argc, argv, &at, &(cargs->cfg), 2, "--config-ro")) {
 			cargs->cfg_ro = true;
 			continue;
 		}
-		if (is_opt(argc, argv, &at, &(cargs->title), 3, "-t", "-T", "--title"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->title), 3, "-t", "-T", "--title"))
 			continue;
-		if (is_opt(argc, argv, &at, NULL, 1, "--tabs")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 1, "--tabs")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, NULL, 1, "--working-directory")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 1, "--working-directory")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, NULL, 1, "--no-remote")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 1, "--no-remote")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, &(cargs->locale), 1, "--locale"))
+		if (lxtc_opt(argc, argv, &at, &(cargs->locale), 1, "--locale"))
 			continue;
-		if (is_opt(argc, argv, &at, NULL, 2, "-v", "--version")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 2, "-v", "--version")) {
 			g_print("\n"LXTERMC_NAME" - "LXTERMC_VERSION"\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, NULL, 2, "-h", "--help")) {
+		if (lxtc_opt(argc, argv, &at, NULL, 2, "-h", "--help")) {
 			g_print("\n%s\n", lxtermc_usage);
 			at = 0;
 			break;
@@ -157,13 +157,10 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 	return (at > 0) ? TRUE : FALSE;
 }
 
-void
-lxtermc_free_str(char **ptr)
+static void
+lxtc_free_and_unset(char **ptr)
 {
-	if (!ptr) {
-		fprintf(stderr, "lxtermc_free_str() - NULL pointer, nothing freed...\n");
-		return;
-	}
+	if (!ptr) return;
 	g_free(*ptr);
 	*ptr = NULL;
 }
@@ -182,10 +179,10 @@ lxtermc_clear_cmdargs(cmdargs_t **cargs)
 	// (*cargs)->exe is pointer to char
 	// &((*cargs)->exe) is pointer to the pointer to the char
 
-	lxtermc_free_str(&((*cargs)->exec));
-	lxtermc_free_str(&((*cargs)->cfg));
-	lxtermc_free_str(&((*cargs)->title));
-	lxtermc_free_str(&((*cargs)->locale));
+	lxtc_free_and_unset(&((*cargs)->exec));
+	lxtc_free_and_unset(&((*cargs)->cfg));
+	lxtc_free_and_unset(&((*cargs)->title));
+	lxtc_free_and_unset(&((*cargs)->locale));
 	*cargs = NULL;
 }
 
