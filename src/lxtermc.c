@@ -203,7 +203,8 @@ main(int argc, char **argv)
 //	GtkApplication *app = gtk_application_new(LXTERMC_APP_ID,
 //		G_APPLICATION_HANDLES_COMMAND_LINE);
 
-	LxtermcApp *app = lxtermc_app_new("= main app =");
+//	LxtermcApp *app = lxtermc_app_new("= main app =");
+	LxtermcApp *app = lxtermc_app_new();
 	g_print("%s - app at: %p - starting main application loop ...\n", fn, (void *)app);
 
 	int gtk_status = g_application_run(G_APPLICATION(app), argc, argv);

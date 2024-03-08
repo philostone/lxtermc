@@ -13,6 +13,24 @@
 #include "cfg.h"
 #include "vte.h"
 
+void
+lxtcvte_clear(lxtcvte_t **vte)
+{
+	char *fn = "lxtcvte_clear()";
+	g_print("%s  '%s' - start!\n", fn, (*vte)->title);
+	g_free((*vte)->title);
+	*vte = NULL;
+}
+
+void
+lxtcvte_scrollwin_destroy(GtkWidget *gwid, lxtcvte_t *lxvte)
+{
+	char *fn = "lxtcvte_destroy()";
+	g_print("%s - '%s' - gwid at: %p - lxvte at: %p\n",
+		fn, lxvte->title, (void *)gwid, (void *)lxvte);
+	lxtcvte_clear(&lxvte);
+}
+
 static const gchar *
 lxtcvte_preferred_shell()
 {
@@ -47,6 +65,8 @@ lxtcvte_new(gchar *title)
 	lxtcv->tab = gtk_label_new(title);
 	lxtcv->scrollwin = gtk_scrolled_window_new();
 	lxtcv->vte = vte_terminal_new();
+	g_signal_connect(GTK_WIDGET(lxtcv->scrollwin),
+		"destroy", G_CALLBACK(lxtcvte_scrollwin_destroy), lxtcv);
 
 	// set up terminal properties
 	vte_terminal_set_size(VTE_TERMINAL(lxtcv->vte), 100, 100);

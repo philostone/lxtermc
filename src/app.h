@@ -30,7 +30,8 @@ G_BEGIN_DECLS
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
 G_DECLARE_FINAL_TYPE(LxtermcApp,    lxtermc_app,    LXTERMC, APP,      GtkApplication)
 
-LxtermcApp *lxtermc_app_new(const gchar *label);
+LxtermcApp *lxtermc_app_new();
+//LxtermcApp *lxtermc_app_new(const gchar *label);
 cmdargs_t *lxtcapp_steal_cmdargs(LxtermcApp *app);
 
 G_END_DECLS

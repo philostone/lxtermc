@@ -14,10 +14,22 @@
 #include "vte.h"
 
 void
-lxtcwin_close(lxtcwin_t *win)
+lxtcwin_clear(lxtcwin_t **win)
+{
+	g_print("lxtcwin_clear() - '%s' - at: %p\n", (*win)->id, (void *)*win);
+	g_free((*win)->id);
+	lxtermc_clear_cmdargs(&(*win)->cmdargs);
+	lxtccfg_clear(&(*win)->cfg);
+	*win = NULL;
+}
+
+gboolean
+lxtcwin_close(GtkWindow *gwin, lxtcwin_t *lxwin)
 {
 	char *fn = "lxtcwin_close()";
-	g_print("%s - '%s' - start!\n", fn, win->id);
+	g_print("%s - '%s' - gwin at: %p - lxwin at: %p\n", fn, lxwin->id, (void *)gwin, (void *)lxwin);
+	lxtcwin_clear(&lxwin);
+	return FALSE; // let GtkWindow handle the rest ...
 }
 
 lxtcwin_t *
@@ -31,9 +43,12 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 	lxtcw->id = g_strdup(id);
 	lxtcw->cmdargs = lxtcapp_steal_cmdargs(app);
 	lxtcw->cfg = lxtccfg_load(lxtcw->cmdargs->cfg);
-
 	lxtcw->win = gtk_application_window_new(GTK_APPLICATION(app));
-	g_signal_connect(GTK_WINDOW(lxtcw->win), "close-request", G_CALLBACK(lxtcwin_close), lxtcw);
+	g_print("%s - new lxtcwin_t struct at: %p - gtkappwin at: %p\n",
+		fn, (void *)lxtcw, (void *)lxtcw->win);
+
+	g_signal_connect(GTK_WINDOW(lxtcw->win),
+		"close-request", G_CALLBACK(lxtcwin_close), lxtcw);
 
 	gtk_window_set_title(GTK_WINDOW(lxtcw->win),
 		((lxtcw->cmdargs->title) ? lxtcw->cmdargs->title: LXTERMC_NAME));
@@ -41,20 +56,18 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
 
 	lxtcw->notebook = gtk_notebook_new();
+	lxtcw->tabs = g_ptr_array_new();
+
+	// TODO: from cmdargs load multiple tabs ...
+	lxtcvte_t *lxtcv = lxtcvte_new(NULL);
+	g_ptr_array_add(lxtcw->tabs, lxtcv);
+	gtk_notebook_append_page(GTK_NOTEBOOK(lxtcw->notebook),
+		GTK_WIDGET(lxtcv->scrollwin), NULL);
+
 	gtk_window_set_child(GTK_WINDOW(lxtcw->win), GTK_WIDGET(lxtcw->notebook));
 
 //	gtk_notebook_append_page(GTK_WIDGET(lxtcw->notebook), GTK_WIDGET(...), NULL);
 	return lxtcw;
-}
-
-void
-lxtcwin_clear(lxtcwin_t **win)
-{
-	g_print("lxtcwin_clear() - '%s'\n", (*win)->id);
-	g_free((*win)->id);
-	lxtermc_clear_cmdargs(&(*win)->cmdargs);
-	lxtccfg_clear(&(*win)->cfg);
-	*win = NULL;
 }
 
 /*

@@ -14,7 +14,7 @@ G_BEGIN_DECLS
 /* one terminal tab */
 
 typedef struct _lxtcvte {
-	gchar		*title;
+	gchar		*title;		// tab label text
 	GtkWidget	*tab;
 	GtkWidget	*scrollwin;
 	GtkWidget	*vte;

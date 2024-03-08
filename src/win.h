@@ -29,7 +29,7 @@ typedef struct _lxtcwin {
 lxtcwin_t *lxtcwin_new(LxtermcApp *app, const gchar *id);
 void lxtcwin_clear(lxtcwin_t **win);
 
-void lxtcwin_close();
+gboolean lxtcwin_close(GtkWindow *gwin, lxtcwin_t *lxwin);
 
 //#define LXTERMC_TYPE_WIN (lxtermc_win_get_type())
 
