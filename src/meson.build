@@ -7,4 +7,9 @@ srcs = [
 	'vte.c'
 ]
 
-exe = executable(meson.project_name(), srcs, dependencies: gtkdeps, install: true)
+exe = executable(
+	meson.project_name(),
+	srcs,
+	lxtcresources,
+	dependencies: gtkdeps,
+	install: true)

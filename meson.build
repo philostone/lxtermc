@@ -25,6 +25,12 @@ gtkdeps = [
 	dependency('vte-2.91-gtk4', version: '>=0.74.2')
 ]
 
+gnome = import('gnome')
+lxtcresources = gnome.compile_resources(
+	'lxtc-resources', 'gtk/gresources.xml',
+	source_dir: 'gtk',
+	c_name: 'lxtc')
+
 subdir('po')
 
 # this is where the main program is, execute last

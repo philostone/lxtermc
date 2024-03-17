@@ -139,6 +139,17 @@ set_integer(GKeyFile *kf, gchar *key, gint *ptr, gint default_value)
 	}
 }
 
+static void
+set_double(GKeyFile *kf, gchar *key, double *ptr, double default_value)
+{
+	GError *err = NULL;
+	*ptr = g_key_file_get_double(kf, MAIN_GROUP, key, &err);
+	if (err) {
+		*ptr = default_value;
+		g_error_free(err);
+	}
+}
+
 /* load config from <cfg_fname>, if NULL, or if reading and/or parsing from file fails,
  * use default settings instead,
  * return pointer to allocated struct, new struct is owned by caller
@@ -182,25 +193,44 @@ lxtccfg_load(char *cfg_fname)
 
 	copy->geometry_change = FALSE;
 
-	// in keyfile
 	set_rgba(kf, BG_COLOR, &copy->bg_color, color_sets[0].bg_color);
 	set_rgba(kf, FG_COLOR, &copy->fg_color, color_sets[0].fg_color);
-	
-	set_boolean(kf, DISALLOW_BOLD, &copy->disallow_bold, LXTERMC_DEFAULT_DISALLOW_BOLD);
-	set_boolean(kf, BOLD_BRIGHT, &copy->bold_bright, LXTERMC_DEFAULT_BOLD_BRIGHT);
-	set_boolean(kf, CURSOR_BLINK, &copy->cursor_blink, LXTERMC_DEFAULT_CURSOR_BLINK);
-	set_boolean(kf, CURSOR_UNDERLINE, &copy->cursor_underline, LXTERMC_DEFAULT_CURSOR_UNDERLINE);
-	set_boolean(kf, AUDIBLE_BELL, &copy->audible_bell, LXTERMC_DEFAULT_AUDIBLE_BELL);
-	set_boolean(kf, VISUAL_BELL, &copy->visual_bell, LXTERMC_DEFAULT_VISUAL_BELL);
 
+	// in keyfile
+	set_boolean(kf, ALLOW_HYPERLINK, &copy->allow_hyperlink, LXTERMC_DEFAULT_ALLOW_HYPERLINK);
+	set_boolean(kf, AUDIBLE_BELL, &copy->audible_bell, LXTERMC_DEFAULT_AUDIBLE_BELL);
+	set_integer(kf, ERASE_BINDING, &copy->erase_binding, LXTERMC_DEFAULT_ERASE_BINDING);
+	set_boolean(kf, BOLD_BRIGHT, &copy->bold_bright, LXTERMC_DEFAULT_BOLD_BRIGHT);
+	set_double(kf, CELL_HEIGHT_SCALE, &copy->cell_height_scale, LXTERMC_DEFAULT_CELL_HEIGHT_SCALE);
+	set_double(kf, CELL_WIDTH_SCALE, &copy->cell_width_scale, LXTERMC_DEFAULT_CELL_WIDTH_SCALE);
+	set_integer(kf, CJK_AMBIGUOUS_WIDTH, &copy->cjk_ambiguous_width, LXTERMC_DEFAULT_CJK_AMBIGUOUS_WIDTH);
+	set_boolean(kf, CLEAR_BACKGROUND, &copy->clear_bg, LXTERMC_DEFAULT_CLEAR_BACKGROUND);
+
+	set_integer(kf, CURSOR_BLINK, &copy->cursor_blink, LXTERMC_DEFAULT_CURSOR_BLINK);
+	set_integer(kf, CURSOR_SHAPE, &copy->cursor_shape, LXTERMC_DEFAULT_CURSOR_SHAPE);
+	set_integer(kf, DELETE_BINDING, &copy->delete_binding, LXTERMC_DEFAULT_DELETE_BINDING);
+	set_boolean(kf, ENABLE_BIDI, &copy->enable_bidi, LXTERMC_DEFAULT_ENABLE_BIDI);
+	set_boolean(kf, ENABLE_FALLBACK_SCROLL, &copy->enable_fallback_scroll, LXTERMC_DEFAULT_ENABLE_FALLBACK_SCROLL);
+	set_boolean(kf, ENABLE_SHAPING, &copy->enable_shaping, LXTERMC_DEFAULT_ENABLE_SHAPING);
+	set_boolean(kf, ENABLE_SIXEL, &copy->enable_sixel, LXTERMC_DEFAULT_ENABLE_SIXEL);
+
+	set_boolean(kf, INPUT_ENABLED, &copy->input_enabled, LXTERMC_DEFAULT_INPUT_ENABLED);
+	set_boolean(kf, MOUSE_AUTOHIDE, &copy->mouse_autohide, LXTERMC_DEFAULT_MOUSE_AUTOHIDE);
+
+	set_boolean(kf, SCROLL_ON_INPUT, &copy->scroll_on_input, LXTERMC_DEFAULT_SCROLL_ON_INPUT);
+	set_boolean(kf, SCROLL_ON_OUTPUT, &copy->scroll_on_output, LXTERMC_DEFAULT_SCROLL_ON_OUTPUT);
+	set_integer(kf, SCROLL_SPEED, &copy->scroll_speed, LXTERMC_DEFAULT_SCROLL_SPEED);
+	set_boolean(kf, SCROLL_IS_PIXELS, &copy->scroll_is_pixels, LXTERMC_DEFAULT_SCROLL_IS_PIXELS);
 	set_integer(kf, SCROLLBACK, &copy->scrollback, LXTERMC_DEFAULT_SCROLLBACK);
 	set_integer(kf, COLS, &copy->cols, LXTERMC_DEFAULT_COLS);
 	set_integer(kf, ROWS, &copy->rows, LXTERMC_DEFAULT_ROWS);
+	set_integer(kf, TEXT_BLINK, &copy->text_blink, LXTERMC_DEFAULT_TEXT_BLINK);
 
+
+// ##############
 	set_boolean(kf, HIDE_SCROLLBAR, &copy->hide_scrollbar, LXTERMC_DEFAULT_HIDE_SCROLLBAR);
 	set_boolean(kf, HIDE_MENUBAR, &copy->hide_menubar, LXTERMC_DEFAULT_HIDE_MENUBAR);
 	set_boolean(kf, HIDE_CLOSE_BUTTON, &copy->hide_close_button, LXTERMC_DEFAULT_HIDE_CLOSE_BUTTON);
-	set_boolean(kf, HIDE_POINTER, &copy->hide_pointer, LXTERMC_DEFAULT_HIDE_POINTER);
 	set_boolean(kf, DISABLE_F10, &copy->disable_f10, LXTERMC_DEFAULT_DISABLE_F10);
 	set_boolean(kf, DISABLE_ALT, &copy->disable_alt, LXTERMC_DEFAULT_DISABLE_ALT);
 	set_boolean(kf, DISABLE_CONFIRM, &copy->disable_confirm, LXTERMC_DEFAULT_DISABLE_CONFIRM);

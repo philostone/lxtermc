@@ -34,9 +34,12 @@ gchar lxtermc_usage[] = {
 	"  -h, --help                 show this help information\n"
 };
 
-/* return FALSE (0) if option is unmatched, TRUE (1) if matched, *at is set to -1 on error
- * if opt_arg is not NULL, corresponding argument value (either separate arg or after =) is
- * copied to *opt_arg, if *opt_arg is not NULL, data there is freed
+/* test argument at argv[*at] against the num_opts long list of option strings and,
+ * if opt_arg is not NULL, copy option argument to *opt_arg, either from within current argument
+ * as the data folowing a =, or from next argument,
+ * return TRUE (1) if option is matched, FALSE (0) otherwise (*at is left unchanged),
+ * increase *at if a separate option argument is consumed and set *at to -1 if expected
+ * option data is not found or if unexpected option data is found (i.e. an unexpected =)
 */
 static int
 is_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
@@ -63,7 +66,10 @@ is_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
 				*at = -1;
 				break;
 			}
-			if (*opt_arg) g_free(*opt_arg);
+			if (*opt_arg) {
+				g_free(*opt_arg);
+				g_print(", earlier option argument had to be freed, why?");
+			}
 			*opt_arg = g_strdup(argv[*at]+l+1);
 			g_print("=%s\n", *opt_arg);
 			break;
@@ -75,7 +81,7 @@ is_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
 			continue;
 		}
 
-		// option IS matched, as it is
+		// option IS matched, as it is, no option argument expected
 		g_print("%s: %s", fn, opt);
 		if (!opt_arg) {
 			g_print("\n");
@@ -103,9 +109,9 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 {
 	gchar *fn = "lxtermc_args()";
 	g_print("%s - parsing %i arguments (including argv[0] = '%s')\n", fn, argc, argv[0]);
-	int at = 0;
-	//cargs->cmd = argv[0]; // not used
-	// at is set to -1 by is_opt() on error
+
+	int at = 0;	// at is set to -1 by is_opt() on (option argument expectation) error
+	// cargs->cmd = argv[0] -> not used
 	while (++at < argc && at > 0) {
 		if (is_opt(argc, argv, &at, &(cargs->exec), 2, "-e", "--command"))
 			continue;

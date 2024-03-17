@@ -7,6 +7,7 @@
 #include "lxtermc.h"
 #include "app.h"
 #include "win.h"
+#include "lxtc-resources.h"
 
 struct _LxtermcApp {
 	GtkApplication parent_instance;
@@ -39,9 +40,9 @@ lxtcapp_steal_cmdargs(LxtermcApp *app)
 }
 
 static void
-close_activated(GSimpleAction *act, GVariant *param, gpointer *data)
+close_activated(GSimpleAction *act, GVariant *param, gpointer data)
 {
-	char *fn = "quit_activated()";
+	char *fn = "close_activated()";
 	g_print("%s - '%s' is activated - param: %p - data: %p\n",
 		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
 //	GtkApplication *app = GTK_APPLICATION(data);
@@ -70,13 +71,19 @@ lxtermc_app_activate(GApplication *app)
 	g_print("%s - cmdargs ptr is now: %p\n", fn, (void *)lxapp->cmdargs);
 
 	// map menu actions to window
+	const GActionEntry win_entries[] = {
+		{"close", close_activated, NULL, NULL, NULL}
+	};
+	g_action_map_add_action_entries(G_ACTION_MAP(lxtcwin->win),
+		win_entries, G_N_ELEMENTS(win_entries), lxtcwin->win);
+/*
 	GSimpleAction *close_act = g_simple_action_new("close", NULL);
 	g_action_map_add_action(G_ACTION_MAP(GTK_APPLICATION_WINDOW(lxtcwin->win)),
 		G_ACTION(close_act));
 	g_signal_connect(close_act, "activate",
 		G_CALLBACK(close_activated), GTK_WINDOW(lxtcwin->win));
 	g_object_unref(close_act);
-
+*/
 	// store windows - why ???
 	g_ptr_array_add(LXTERMC_APP(app)->lxtcwins, lxtcwin);
 	gtk_window_present(GTK_WINDOW(lxtcwin->win));
@@ -176,7 +183,7 @@ lxtermc_app_finalize(GObject *obj)
 }
 
 static void
-prefs_activated(GSimpleAction *act, GVariant *param, gpointer *data)
+prefs_activated(GSimpleAction *act, GVariant *param, gpointer data)
 {
 	char *fn = "prefs_activated()";
 	g_print("%s - '%s' is activated - param: %p - data: %p\n",
@@ -190,34 +197,22 @@ lxtermc_app_startup(GApplication *app)
 	gchar *fn = "lxtermc_app_startup()";
 	g_print("%s - at: %p\n", fn, (void *)app);
 
+	GtkBuilder *builder = gtk_builder_new_from_resource("/com/github/philostone/lxtermc/menu.ui");
+	GMenuModel *menubar = G_MENU_MODEL(gtk_builder_get_object(builder, "menubar"));
+
+	gtk_application_set_menubar(GTK_APPLICATION(app), menubar);
+	g_object_unref(menubar);
+
+	const GActionEntry app_entries[] = {
+		{"prefs", prefs_activated, NULL, NULL, NULL}
+	};
+	g_action_map_add_action_entries(G_ACTION_MAP(app),
+		app_entries, G_N_ELEMENTS(app_entries), app);
+/*/*
 	GSimpleAction *prefs_act = g_simple_action_new("prefs", NULL);
 	g_action_map_add_action(G_ACTION_MAP(GTK_APPLICATION(app)), G_ACTION(prefs_act));
 	g_signal_connect(prefs_act, "activate", G_CALLBACK(prefs_activated), app);
-
-	// menubar
-	GMenu *menubar = g_menu_new();
-
-	// file menu
-	GMenu *file_menu = g_menu_new();
-	GMenuItem *close_item = g_menu_item_new("Close Window", "win.close");
-	g_menu_append_submenu(menubar, "File", G_MENU_MODEL(file_menu));
-	g_menu_append_item(file_menu, close_item);
-
-	// edit menu
-	GMenu *edit_menu = g_menu_new();
-	GMenuItem *prefs_item = g_menu_item_new("Preferences", "app.prefs");
-	g_menu_append_submenu(menubar, "Edit", G_MENU_MODEL(edit_menu));
-	g_menu_append_item(edit_menu, prefs_item);
-
-	// ***
-	gtk_application_set_menubar(GTK_APPLICATION(app), G_MENU_MODEL(menubar));
-
-	g_object_unref(prefs_act);
-	g_object_unref(menubar);
-	g_object_unref(file_menu);
-	g_object_unref(edit_menu);
-	g_object_unref(close_item);
-	g_object_unref(prefs_item);
+*/
 }
 
 static void
@@ -246,7 +241,6 @@ lxtermc_app_init(LxtermcApp *app)
 	app->lxtcwins = g_ptr_array_new();
 }
 
-//lxtermc_app_new(const gchar *label)
 LxtermcApp *
 lxtermc_app_new()
 {
