@@ -1,4 +1,5 @@
 src/lxtermc.c
 src/lxtermcapp.c
 src/lxtermcwin.c
+src/lxtermctab.c
 src/lxtermcvte.c

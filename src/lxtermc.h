@@ -2,9 +2,22 @@
 #ifndef _lxtermc_h_
 #define _lxtermc_h_
 
-#include <gtk/gtk.h>
+G_BEGIN_DECLS
+
 #include <glib.h>
+#include <gtk/gtk.h>
 #include <vte/vte.h>
+
+typedef struct _cmdargs cmdargs_t;
+typedef struct _cfg lxtccfg_t;
+typedef struct _lxtcwin lxtcwin_t;
+typedef struct _lxtctab lxtctab_t;
+
+#include "cfg.h"
+#include "app.h"
+#include "win.h"
+#include "tab.h"
+#include "vte.h"
 
 #define LXTERMC_APP_ID				"com.github.philostone.lxtermc"
 #define LXTERMC_NAME				"lxtermc"
@@ -82,6 +95,7 @@ typedef struct _cmdargs {
 	char *cfg;		// copy of -c argument
 	gboolean cfg_ro;	// treat provided config as read only
 	char *title;		// copy of -t argument
+	char *tabs;		// comma separated list of tab titles
 	char *locale;		// copy of locale id, to use instead of user locale
 //	GtkWindow *win;		// -> to the top level window that the arguments regard
 } cmdargs_t;
@@ -90,5 +104,7 @@ extern gchar lxtermc_usage[];
 int lxtermc_args(int argc, char **argv, cmdargs_t *cargs);
 void lxtermc_free_str(char **ptr);
 void lxtermc_clear_cmdargs(cmdargs_t **cargs);
+
+G_END_DECLS
 
 #endif /* _lxtermc_h_ */

@@ -10,8 +10,6 @@
 //#include <X11/Xlib.h>
 
 #include "lxtermc.h"
-#include "app.h"
-#include "win.h"
 
 gchar lxtermc_usage[] = {
 	"lxtermc - is a per window individually configurable terminal emulator\n"
@@ -26,7 +24,7 @@ gchar lxtermc_usage[] = {
 	"  -c, --config <fname>       use file <fname> instead of user or system config\n"
 	"  --config-ro <fname>        load <fname> as config, but do not alter it\n"
 	"  -t, -T, --title <title>    set <title> as terminal window title\n"
-	"  --tabs <n1>[,<n2>[...]]    start tabs with names\n"
+	"  --tabs <n1>[,<n2>[...]]    start tabs with names, multiple statements are added\n"
 	"  --working-directory <dir>  set <dir> as working directory\n"
 	"  --locale <id>              use <id> as locale instead of user's (must be installed)\n"
 	"  --no-remote                do not accept or send remote commands\n"
@@ -34,7 +32,7 @@ gchar lxtermc_usage[] = {
 	"  -h, --help                 show this help information\n"
 };
 
-/* test argument at argv[*at] against the num_opts long list of option strings and,
+/* test argument at argv[*at] against the num_optids long list of option strings and,
  * if opt_arg is not NULL, copy option argument to *opt_arg, either from within current argument
  * as the data folowing a =, or from next argument,
  * return TRUE (1) if option is matched, FALSE (0) otherwise (*at is left unchanged),
@@ -42,13 +40,13 @@ gchar lxtermc_usage[] = {
  * option data is not found or if unexpected option data is found (i.e. an unexpected =)
 */
 static int
-is_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
+is_opt(int argc, char **argv, int *at, char **opt_arg, int num_optids, ...)
 {
 	char *fn = "is_opt()";
 	char *opt = NULL;
 	va_list ap;
-	va_start(ap, num_opts);
-	for (int i = 0; i < num_opts; i++) {
+	va_start(ap, num_optids);
+	for (int i = 0; i < num_optids; i++) {
 		opt = va_arg(ap, char *);
 		int l = strlen(opt);
 
@@ -97,7 +95,7 @@ is_opt(int argc, char **argv, int *at, char **opt_arg, int num_opts, ...)
 		}
 		if (*opt_arg) g_free(*opt_arg);
 		*opt_arg = g_strdup(argv[*at]);
-		g_print(", %s\n", *opt_arg);
+		g_print(": %s\n", *opt_arg);
 		break;
 	}
 	va_end(ap);
@@ -128,11 +126,8 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 		}
 		if (is_opt(argc, argv, &at, &(cargs->title), 3, "-t", "-T", "--title"))
 			continue;
-		if (is_opt(argc, argv, &at, NULL, 1, "--tabs")) {
-			g_print("\nnot implemented yet!\n");
-			at = 0;
-			break;
-		}
+		if (is_opt(argc, argv, &at, &(cargs->tabs), 1, "--tabs"))
+			continue;
 		if (is_opt(argc, argv, &at, NULL, 1, "--working-directory")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
@@ -173,7 +168,12 @@ lxtermc_free_str(char **ptr)
 	g_free(*ptr);
 	*ptr = NULL;
 }
-
+/*
+void lxtc_gfunc_free(void *ptr, gpointer data)
+{
+	g_free(ptr);
+}
+*/
 void
 lxtermc_clear_cmdargs(cmdargs_t **cargs)
 {
@@ -191,6 +191,9 @@ lxtermc_clear_cmdargs(cmdargs_t **cargs)
 	lxtermc_free_str(&((*cargs)->exec));
 	lxtermc_free_str(&((*cargs)->cfg));
 	lxtermc_free_str(&((*cargs)->title));
+	lxtermc_free_str(&((*cargs)->tabs));
+////	g_ptr_array_foreach((*cargs)->tabs, lxtc_gfunc_free, NULL);
+//	g_ptr_array_free((*cargs)->tabs, TRUE);
 	lxtermc_free_str(&((*cargs)->locale));
 	*cargs = NULL;
 }

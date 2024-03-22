@@ -3,12 +3,9 @@
 #ifndef _LXTERMCAPP_H_
 #define _LXTERMCAPP_H_
 
-#include <glib.h>
-#include <gtk/gtk.h>
+G_BEGIN_DECLS
 
 #include "lxtermc.h"
-
-G_BEGIN_DECLS
 
 #define LXTERMC_TYPE_APP (lxtermc_app_get_type())
 
@@ -31,7 +28,6 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE(LxtermcApp,    lxtermc_app,    LXTERMC, APP,      GtkApplication)
 
 LxtermcApp *lxtermc_app_new();
-//LxtermcApp *lxtermc_app_new(const gchar *label);
 cmdargs_t *lxtcapp_steal_cmdargs(LxtermcApp *app);
 
 G_END_DECLS

@@ -4,6 +4,7 @@ srcs = [
 	'cfg.c',
 	'app.c',
 	'win.c',
+	'tab.c',
 	'vte.c'
 ]
 

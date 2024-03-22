@@ -1,8 +1,8 @@
 0:0	src/lxtermc.h
-0:1	src/lxtermcapp.h
-0:2	src/lxtermcwin.h
-0:3
-0:4
+0:1	src/app.h
+0:2	src/win.h
+0:3	src/tab.h
+0:4	src/vte.h
 0:5	src/meson.build
 
 1:0	po/LINGUAS
@@ -13,10 +13,10 @@
 1:5
 
 2:0	src/lxtermc.c
-2:1	src/lxtermcapp.c
-2:2	src/lxtermcwin.c
-2:3
-2:4
+2:1	src/capp.c
+2:2	src/win.c
+2:3	src/tab.c
+2:4	src/vte.c
 2:5
 
 3:0	meson.build

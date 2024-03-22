@@ -3,10 +3,9 @@
 #ifndef _LXTERMC_CFG_H_
 #define _LXTERMC_CFG_H_
 
-#include <glib.h>
-#include <gdk/gdk.h>
+G_BEGIN_DECLS
 
-#include "lxtermc.h"
+#include "lxtermc.h"		// for LXTERMC_NAME
 
 /* config file groups */
 #define MAIN_GROUP		LXTERMC_NAME
@@ -57,7 +56,7 @@
 
 /* config default values in lxtermc.h */
 
-typedef struct _cfg_t {
+typedef struct _cfg {
 	GKeyFile *keyfile;
 //	gchar *config;
 	const char *preset_color;
@@ -120,5 +119,7 @@ extern colorset_t color_presets[];
 
 lxtccfg_t *lxtccfg_load(char *fname);
 void lxtccfg_clear(lxtccfg_t **cfg);
+
+G_END_DECLS
 
 #endif /* _LXTERMC_CFG_H_ */

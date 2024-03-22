@@ -5,9 +5,8 @@
 #include <locale.h>
 
 #include "lxtermc.h"
-#include "app.h"
-#include "win.h"
 #include "lxtc-resources.h"
+#include "app.h"
 
 struct _LxtermcApp {
 	GtkApplication parent_instance;
@@ -64,26 +63,19 @@ lxtermc_app_activate(GApplication *app)
 	g_print("%s - #wins: %i - app at: %p - cmdargs ptr: %p\n",
 		fn, numwin, (void *)app, (void *)lxapp->cmdargs);
 
-	// construct win id and led lxtcwin_new() steal ownwership of lxapp->cmdargs
+	// construct win id and let lxtcwin_new() steal ownwership of lxapp->cmdargs
 	gchar *id = g_strdup_printf("= win id #%u =", numwin+1);
 	lxtcwin_t *lxtcwin = lxtcwin_new(LXTERMC_APP(app), id);
 	g_free(id);
-	g_print("%s - cmdargs ptr is now: %p\n", fn, (void *)lxapp->cmdargs);
+//	g_print("%s - cmdargs ptr is now: %p\n", fn, (void *)lxapp->cmdargs);
 
 	// map menu actions to window
 	const GActionEntry win_entries[] = {
-		{"close", close_activated, NULL, NULL, NULL}
+		{"close", close_activated, NULL, NULL, NULL, {0}} // last field: gsize padding[3];
 	};
 	g_action_map_add_action_entries(G_ACTION_MAP(lxtcwin->win),
 		win_entries, G_N_ELEMENTS(win_entries), lxtcwin->win);
-/*
-	GSimpleAction *close_act = g_simple_action_new("close", NULL);
-	g_action_map_add_action(G_ACTION_MAP(GTK_APPLICATION_WINDOW(lxtcwin->win)),
-		G_ACTION(close_act));
-	g_signal_connect(close_act, "activate",
-		G_CALLBACK(close_activated), GTK_WINDOW(lxtcwin->win));
-	g_object_unref(close_act);
-*/
+
 	// store windows - why ???
 	g_ptr_array_add(LXTERMC_APP(app)->lxtcwins, lxtcwin);
 	gtk_window_present(GTK_WINDOW(lxtcwin->win));
@@ -115,6 +107,7 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 		lxtermc_clear_cmdargs(&(lxapp->cmdargs));
 	}
 	lxapp->cmdargs = g_new0(cmdargs_t, 1);
+//	lxapp->cmdargs->tabs = g_ptr_array_new();
 	if (lxtermc_args(argc, argv, lxapp->cmdargs) != TRUE) {
 		g_print("%s - lxtermc_args() returned with error\n", fn);
 		return FALSE;
@@ -150,7 +143,7 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 
 	// this implementation needs an explicit activation signal...
 	// (or open, if that kind of argument was to be accepted, for this impl (so far)
-	// the only possible way is through -e --command arguments)
+	// the only possible way to open a file is through -e --command arguments)
 	g_application_activate(G_APPLICATION(app));
 	g_print("%s - end\n", fn);
 	return TRUE;
@@ -204,7 +197,7 @@ lxtermc_app_startup(GApplication *app)
 	g_object_unref(menubar);
 
 	const GActionEntry app_entries[] = {
-		{"prefs", prefs_activated, NULL, NULL, NULL}
+		{"prefs", prefs_activated, NULL, NULL, NULL, {0}} // last field: gsize padding[3];
 	};
 	g_action_map_add_action_entries(G_ACTION_MAP(app),
 		app_entries, G_N_ELEMENTS(app_entries), app);

@@ -8,103 +8,59 @@
 #include <vte/vte.h>
 
 #include "lxtermc.h"
-#include "app.h"
-#include "win.h"
-#include "cfg.h"
 #include "vte.h"
+#include "tab.h"
 
-void
-lxtcvte_clear(lxtcvte_t **vte)
+struct _LxtermcVte {
+	VteTerminal parent_instance;
+
+	// subclass instance variables
+	lxtctab_t *tab;
+};
+
+G_DEFINE_TYPE(LxtermcVte, lxtermc_vte, VTE_TYPE_TERMINAL)
+
+static void
+vte_child_exited(VteTerminal *vte, gint status)
 {
-	char *fn = "lxtcvte_clear()";
-	g_print("%s  '%s' - start!\n", fn, (*vte)->title);
-	g_free((*vte)->title);
-	*vte = NULL;
+	char *fn = "vte_child_exited()";
+	g_print("%s - at: %p, status: %i\n", fn, (void *)vte, status);
+	lxtcwin_close_tab(LXTERMC_VTE(vte->win), LXTERMC_VTE(vte)->tab);
+//	VTE_TERMINAL_CLASS(lxtermc_vte_parent_class)->child_exited(vte, status);
 }
 
-void
-lxtcvte_scrollwin_destroy(GtkWidget *gwid, lxtcvte_t *lxvte)
+/*
+static void
+vte_eof(VteTerminal *vte)
 {
-	char *fn = "lxtcvte_scrollwin_destroy()";
-	g_print("%s - '%s' - gwid at: %p - lxvte at: %p\n",
-		fn, lxvte->title, (void *)gwid, (void *)lxvte);
-	lxtcvte_clear(&lxvte);
+	char *fn = "vte_eof()";
+	g_print("%s - at: %p\n", fn, (void *)vte);
+//	VTE_TERMINAL_CLASS(lxtermc_vte_parent_class)->eof(vte);
 }
+*/
 
-static const gchar *
-lxtcvte_preferred_shell()
+static void
+lxtermc_vte_class_init(LxtermcVteClass *class)
 {
-	const gchar *fallback = LXTERMC_FALLBACK_SHELL;
-	const gchar *shell = g_getenv("SHELL");
-	if (geteuid() == getuid() && getegid() == getgid()
-		&& shell != NULL && !access(shell, X_OK)) return shell;
-
-	struct passwd *pw = getpwuid(getuid());
-	if (pw && pw->pw_shell && !access(pw->pw_shell, X_OK)) return pw->pw_shell;
-
-	if (access(fallback, X_OK)) return fallback;
-
-	return NULL;
+	gchar *fn = "lxtermc_vte_class_init()";
+	g_print("%s - class at: %p\n", fn, (void *)class);
+	VTE_TERMINAL_CLASS(class)->child_exited = vte_child_exited;
+//	VTE_TERMINAL_CLASS(class)->eof = vte_eof;
 }
 
 static void
-lxtcvte_spawn_async_callback(VteTerminal *vte, int pid, GError *error, void *data)
+lxtermc_vte_init(LxtermcVte *vte)
 {
-	char *fn = "lxtcvte_spawn_async_callback()";
-	g_print("%s - vte at: %p - pid: %i - error: %p, data: %p\n",
-		fn, (void *)vte, pid, (void *)error, data);
+	gchar *fn = "lxtermc_vte_init()";
+	g_print("%s - vte at_ %p\n", fn, (void *)vte);
 }
 
-static void
-lxtcvte_child_exited(VteTerminal *vte, gint status)
+LxtermcVte *
+lxtermc_vte_new(lxtctab_t *tab)
 {
-	char *fn = "lxtcvte_child_exited()";
-	g_print("%s !!!!!\n");
-}
-
-lxtcvte_t *
-lxtcvte_new(gchar *title)
-{
-	char *fn = "lxtcvte_new()";
-	g_print("%s - '%s' - start!\n", fn, title);
-
-	lxtcvte_t *lxtcv = g_new0(lxtcvte_t, 1);
-	lxtcv->tab = gtk_label_new(title);
-	lxtcv->scrollwin = gtk_scrolled_window_new();
-	lxtcv->vte = vte_terminal_new();
-	g_signal_connect(GTK_WIDGET(lxtcv->scrollwin),
-		"destroy", G_CALLBACK(lxtcvte_scrollwin_destroy), lxtcv);
-
-	// set up terminal properties
-	vte_terminal_set_size(VTE_TERMINAL(lxtcv->vte), 100, 100);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(lxtcv->vte), 1000);
-
-	// pack the main widget
-	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(lxtcv->scrollwin),
-		GTK_WIDGET(lxtcv->vte));
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(lxtcv->scrollwin),
-		GTK_POLICY_ALWAYS, GTK_POLICY_ALWAYS);
-
-	gchar **exec = g_malloc(3*sizeof(gchar *));
-	exec[0] = g_strdup(lxtcvte_preferred_shell());
-	exec[1] = g_path_get_basename(exec[0]);		// TODO: user provided path
-	exec[2] = NULL;
-
-	vte_terminal_spawn_async(
-		VTE_TERMINAL(lxtcv->vte),	// terminal
-		VTE_PTY_DEFAULT,		// flagse
-		g_get_current_dir(),		// working directory
-		exec,				// child argv
-		NULL,				// envv
-		G_SPAWN_SEARCH_PATH | G_SPAWN_FILE_AND_ARGV_ZERO,
-		NULL,				// child setup func (virtually useless)
-		NULL,				// child setup data
-		NULL,				// child setup data destroy
-		-1,				// default timeout
-		NULL,				// cancellable
-		lxtcvte_spawn_async_callback,	// spawn callback
-		NULL);				// callback user data
-	g_strfreev(exec);
-
-	return lxtcv;
+	char *fn = "lxtermc_vte_new()";
+	g_print("%s - start!\n", fn);
+	LxtermcVte *vte = g_object_new(LXTERMC_TYPE_VTE, NULL);
+	vte->tab = tab;
+	return vte;
 }
