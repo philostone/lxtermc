@@ -1,6 +1,6 @@
 
-#ifndef _lxtermc_h_
-#define _lxtermc_h_
+#ifndef _LXTERMC_H_
+#define _LXTERMC_H_
 
 G_BEGIN_DECLS
 
@@ -8,11 +8,13 @@ G_BEGIN_DECLS
 #include <gtk/gtk.h>
 #include <vte/vte.h>
 
+// required to resolv circular header dependencies
 typedef struct _cmdargs cmdargs_t;
 typedef struct _cfg lxtccfg_t;
 typedef struct _lxtcwin lxtcwin_t;
 typedef struct _lxtctab lxtctab_t;
 
+// include all components here
 #include "cfg.h"
 #include "app.h"
 #include "win.h"
@@ -102,9 +104,9 @@ typedef struct _cmdargs {
 
 extern gchar lxtermc_usage[];
 int lxtermc_args(int argc, char **argv, cmdargs_t *cargs);
-void lxtermc_free_str(char **ptr);
-void lxtermc_clear_cmdargs(cmdargs_t **cargs);
+void lxtermc_free_str_at(char **ptr);
+void lxtermc_free_cmdargs_at(cmdargs_t **cargs);
 
 G_END_DECLS
 
-#endif /* _lxtermc_h_ */
+#endif /* _LXTERMC_H_ */

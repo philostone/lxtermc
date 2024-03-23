@@ -7,16 +7,16 @@
 #include <pwd.h>
 #include <vte/vte.h>
 
-#include "lxtermc.h"
-#include "win.h"
+#include "lxtermc.h"		// all components are included here
+//#include "win.h"
 
 void
-lxtcwin_clear(lxtcwin_t **win)
+lxtcwin_free_at(lxtcwin_t **win)
 {
 	g_print("lxtcwin_clear() - '%s' - at: %p\n", (*win)->id, (void *)*win);
 	g_free((*win)->id);
-	lxtermc_clear_cmdargs(&(*win)->cmdargs);
-	lxtccfg_clear(&(*win)->cfg);
+	lxtermc_free_cmdargs_at(&(*win)->cmdargs);
+	lxtccfg_free_at(&(*win)->cfg);
 	*win = NULL;
 }
 
@@ -25,7 +25,11 @@ lxtcwin_close(GtkWindow *gwin, lxtcwin_t *lxwin)
 {
 	char *fn = "lxtcwin_close()";
 	g_print("%s - '%s' - gwin at: %p - lxwin at: %p\n", fn, lxwin->id, (void *)gwin, (void *)lxwin);
-	lxtcwin_clear(&lxwin);
+
+// Here should all vte childs exit...
+
+
+	lxtcwin_free_at(&lxwin);
 	return FALSE; // let GtkWindow handle the rest ...
 }
 
@@ -50,13 +54,16 @@ lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab)
 	if (!g_ptr_array_remove(win->tabs, tab)) {
 		g_print("%s - tab pointer not found...\n", fn);
 	}
-	int i = gtk_notebook_page_num(win->notebook, GTK_WIDGET(tab->scrollwin));
-	if (i < 0) {
+	int i = 0;
+	if ((i = gtk_notebook_get_n_pages(GTK_NOTEBOOK(win->notebook)) < 2)) {
+		gtk_window_close(GTK_WINDOW(win->win));
+		return;
+	}
+	if ((i = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), GTK_WIDGET(tab->scrollwin)) < 0)) {
 		g_print("%s - tab not found in notebook\n", fn);
 	} else {
-		gtk_notebook_remove_page(win->notebook, i);
+		gtk_notebook_remove_page(GTK_NOTEBOOK(win->notebook), i);
 	}
-	lxtctab_clear(tab);
 }
 
 lxtcwin_t *

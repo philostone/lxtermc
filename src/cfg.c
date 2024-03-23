@@ -2,8 +2,8 @@
 
 #include <glib.h>
 
-#include "lxtermc.h"
-#include "cfg.h"
+#include "lxtermc.h"		// all components are included here
+//#include "cfg.h"
 
 // TODO: update to rgba
 colorset_t color_sets[] = {
@@ -74,9 +74,9 @@ colorset_t color_sets[] = {
 #define NUM_COLOR_SETS 7
 
 void
-lxtccfg_clear(lxtccfg_t **cfg)
+lxtccfg_free_at(lxtccfg_t **cfg)
 {
-	g_print("lxtccfg_clear() - start!\n");
+	g_print("lxtccfg_free_at() - start!\n");
 
 	g_key_file_free((*cfg)->keyfile);
 //	g_free((*cfg)->config);

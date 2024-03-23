@@ -9,7 +9,7 @@
 #include <string.h>
 //#include <X11/Xlib.h>
 
-#include "lxtermc.h"
+#include "lxtermc.h"		// all components are included here
 
 gchar lxtermc_usage[] = {
 	"lxtermc - is a per window individually configurable terminal emulator\n"
@@ -159,42 +159,38 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 }
 
 void
-lxtermc_free_str(char **ptr)
+lxtermc_free_str_at(char **ptr)
 {
-	if (!ptr) {
-		fprintf(stderr, "lxtermc_free_str() - NULL pointer, nothing freed...\n");
-		return;
+	gchar *fn = "lxtermc_free_str_at()";
+	if (ptr) {
+		g_free(*ptr);
+		*ptr = NULL;
+	} else {
+		fprintf(stderr, "%s - NULL pointer, nothing is freed...\n", fn);
 	}
-	g_free(*ptr);
-	*ptr = NULL;
 }
-/*
-void lxtc_gfunc_free(void *ptr, gpointer data)
-{
-	g_free(ptr);
-}
-*/
+
 void
-lxtermc_clear_cmdargs(cmdargs_t **cargs)
+lxtermc_free_cmdargs_at(cmdargs_t **cargs)
 {
 	char *fn = "lxtermc_clear_cmdargs()";
 	g_print("%s - start!\n", fn);
 	if (!cargs || !(*cargs)) {
-		g_print("%s - nothing to free...\n", fn);
+		g_print("%s - NULL pointer, nothing is freed...\n", fn);
 		return;
 	}
 
 	// *cargs is pointer to cmdargs_t struct
 	// (*cargs)->exe is pointer to char
 	// &((*cargs)->exe) is pointer to the pointer to the char
+	lxtermc_free_str_at(&((*cargs)->exec));
+	lxtermc_free_str_at(&((*cargs)->cfg));
+	lxtermc_free_str_at(&((*cargs)->title));
+	lxtermc_free_str_at(&((*cargs)->tabs));
 
-	lxtermc_free_str(&((*cargs)->exec));
-	lxtermc_free_str(&((*cargs)->cfg));
-	lxtermc_free_str(&((*cargs)->title));
-	lxtermc_free_str(&((*cargs)->tabs));
 ////	g_ptr_array_foreach((*cargs)->tabs, lxtc_gfunc_free, NULL);
 //	g_ptr_array_free((*cargs)->tabs, TRUE);
-	lxtermc_free_str(&((*cargs)->locale));
+	lxtermc_free_str_at(&((*cargs)->locale));
 	*cargs = NULL;
 }
 

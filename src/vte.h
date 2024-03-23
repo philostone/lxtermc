@@ -1,7 +1,7 @@
 /**/
 
-#ifndef _lxtermcvte_h_
-#define _lxtermcvte_h_
+#ifndef _LXTERMC_VTE_H_
+#define _LXTERMX_VTE_H_
 
 G_BEGIN_DECLS
 
@@ -13,4 +13,4 @@ LxtermcVte *lxtermc_vte_new(lxtctab_t *tab);
 
 G_END_DECLS
 
-#endif /* _lxtermcvte_h_ */
+#endif /* _LXTERMC_VTE_H_ */

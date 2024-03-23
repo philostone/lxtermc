@@ -4,9 +4,9 @@
 #include <gtk/gtk.h>
 #include <locale.h>
 
-#include "lxtermc.h"
+#include "lxtermc.h"		// all components are included here
 #include "lxtc-resources.h"
-#include "app.h"
+//#include "app.h"
 
 struct _LxtermcApp {
 	GtkApplication parent_instance;
@@ -104,7 +104,7 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 
 	if (lxapp->cmdargs) {
 		g_print("%s - cmdargs needs freeing - why???\n", fn);
-		lxtermc_clear_cmdargs(&(lxapp->cmdargs));
+		lxtermc_free_cmdargs_at(&(lxapp->cmdargs));
 	}
 	lxapp->cmdargs = g_new0(cmdargs_t, 1);
 //	lxapp->cmdargs->tabs = g_ptr_array_new();
@@ -167,7 +167,7 @@ lxtermc_app_finalize(GObject *obj)
 	// maybe allocated
 	if (lxapp->cmdargs) {
 		g_print("%s - cmdargs needs freeing - why???\n", fn);
-		lxtermc_clear_cmdargs(&(lxapp->cmdargs));
+		lxtermc_free_cmdargs_at(&(lxapp->cmdargs));
 	}
 	g_print("%s - freeing lxwins array of %i ptrs\n", fn, lxapp->lxtcwins->len);
 	g_ptr_array_free(lxapp->lxtcwins, TRUE);

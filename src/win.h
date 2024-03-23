@@ -1,7 +1,7 @@
 /**/
 
-#ifndef _lxtermcwin_h_
-#define _lxtermcwin_h_
+#ifndef _LXTERMC_WIN_H_
+#define _LXTERMC_WIN_H_
 
 G_BEGIN_DECLS
 
@@ -22,11 +22,11 @@ typedef struct _lxtcwin {
 } lxtcwin_t;
 
 lxtcwin_t *lxtcwin_new(LxtermcApp *app, const gchar *id);
-void lxtcwin_clear(lxtcwin_t **win);
+void lxtcwin_free_at(lxtcwin_t **win);
 
 gboolean lxtcwin_close(GtkWindow *gwin, lxtcwin_t *lxwin);
 void lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab);
 
 G_END_DECLS
 
-#endif /* _lxtermcwin_h_ */
+#endif /* _LXTERMC_WIN_H_ */

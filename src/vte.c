@@ -7,9 +7,9 @@
 #include <pwd.h>
 #include <vte/vte.h>
 
-#include "lxtermc.h"
-#include "vte.h"
-#include "tab.h"
+#include "lxtermc.h"		// all components are included here
+//#include "vte.h"
+//#include "tab.h"
 
 struct _LxtermcVte {
 	VteTerminal parent_instance;
@@ -25,7 +25,8 @@ vte_child_exited(VteTerminal *vte, gint status)
 {
 	char *fn = "vte_child_exited()";
 	g_print("%s - at: %p, status: %i\n", fn, (void *)vte, status);
-	lxtcwin_close_tab(LXTERMC_VTE(vte->win), LXTERMC_VTE(vte)->tab);
+	lxtctab_close(LXTERMC_VTE(vte)->tab);
+//	lxtcwin_close_tab(LXTERMC_VTE(vte)->tab->win, LXTERMC_VTE(vte)->tab);
 //	VTE_TERMINAL_CLASS(lxtermc_vte_parent_class)->child_exited(vte, status);
 }
 

@@ -7,28 +7,38 @@
 #include <pwd.h>
 #include <vte/vte.h>
 
-#include "lxtermc.h"
-#include "tab.h"
+#include "lxtermc.h"		// all components are included here
+//#include "tab.h"
 
 void
-lxtctab_clear(lxtctab_t **tab)
+lxtctab_free_at(lxtctab_t **tab)
 {
-	char *fn = "lxtctab_clear()";
+	char *fn = "lxtctab_free_at()";
 	g_print("%s  '%s' - start!\n", fn, gtk_label_get_text(GTK_LABEL((*tab)->tab)));
-	g_object_unref((*tab)->tab);
-	g_object_unref((*tab)->scrollwin);
-	g_object_unref((*tab)->vte);
+//	g_object_unref((*tab)->tab);
+//	g_object_unref((*tab)->scrollwin);
+//	g_object_unref((*tab)->vte);
+	g_free(*tab);
 	*tab = NULL;
 }
 
+/*
 void
 lxtctab_destroy(GtkWidget *gwid, lxtctab_t *tab)
 {
 	char *fn = "lxtctab_destroy()";
 	g_print("%s - '%s' - gwid at: %p - lxtab at: %p\n",
 		fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)gwid, (void *)tab);
-
 	lxtctab_clear(&tab);
+}
+*/
+
+void lxtctab_close(lxtctab_t *tab)
+{
+	gchar *fn = "lxtctab_close()";	
+	g_print("%s - '%s' - at: %p\n", fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)tab);
+	lxtcwin_close_tab(tab->win, tab);
+	lxtctab_free_at(&tab);
 }
 
 static const gchar *
@@ -99,6 +109,9 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 		lxtctab_spawn_async_callback,	// spawn callback
 		NULL);				// callback user data
 	g_strfreev(exec);
+
+	// makes all tabs exit if eof is typed, why?
+//	vte_terminal_feed(VTE_TERMINAL(tab->vte), "lxtermc\n", 8);
 
 	return tab;
 }
