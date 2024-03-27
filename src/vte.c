@@ -26,7 +26,6 @@ vte_child_exited(VteTerminal *vte, gint status)
 	char *fn = "vte_child_exited()";
 	g_print("%s - at: %p, status: %i\n", fn, (void *)vte, status);
 	lxtctab_close(LXTERMC_VTE(vte)->tab);
-//	lxtcwin_close_tab(LXTERMC_VTE(vte)->tab->win, LXTERMC_VTE(vte)->tab);
 //	VTE_TERMINAL_CLASS(lxtermc_vte_parent_class)->child_exited(vte, status);
 }
 
@@ -40,12 +39,20 @@ vte_eof(VteTerminal *vte)
 }
 */
 
+/*
+static void vte_resize_window(VteTerminal *vte, guint width, guint height)
+{
+	gchar *fn = "vte_resize_window()";
+	g_print("%s - at: %p - to width: %u, height: %u\n", fn, (void *)vte, width, height);
+}
+*/
 static void
 lxtermc_vte_class_init(LxtermcVteClass *class)
 {
 	gchar *fn = "lxtermc_vte_class_init()";
 	g_print("%s - class at: %p\n", fn, (void *)class);
 	VTE_TERMINAL_CLASS(class)->child_exited = vte_child_exited;
+//	VTE_TERMINAL_CLASS(class)->resize_window = vte_child_exited;
 //	VTE_TERMINAL_CLASS(class)->eof = vte_eof;
 }
 

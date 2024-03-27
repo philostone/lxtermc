@@ -3,9 +3,9 @@
 #ifndef _LXTERMC_CFG_H_
 #define _LXTERMC_CFG_H_
 
-G_BEGIN_DECLS
-
 #include "lxtermc.h"		// for LXTERMC_NAME
+
+G_BEGIN_DECLS
 
 /* config file groups */
 #define MAIN_GROUP		LXTERMC_NAME

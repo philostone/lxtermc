@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>		// for unix
+#include <glib-unix.h>		// signals handling
 //#include <X11/Xlib.h>
 
 #include "lxtermc.h"		// all components are included here
@@ -194,6 +196,60 @@ lxtermc_free_cmdargs_at(cmdargs_t **cargs)
 	*cargs = NULL;
 }
 
+static gint
+handle_sighup(gpointer data)
+{
+	gchar *fn = "handle_sighup()";
+	g_print("%s - data at: %p\n", fn, (void *)data);
+	g_application_quit(G_APPLICATION(data));
+	return G_SOURCE_CONTINUE;
+}
+
+static gint
+handle_sigint(gpointer data)
+{
+	gchar *fn = "handle_sighup()";
+	g_print("%s - data at: %p\n", fn, (void *)data);
+	g_application_quit(G_APPLICATION(data));
+	return G_SOURCE_CONTINUE;
+}
+
+static gint
+handle_sigterm(gpointer data)
+{
+	gchar *fn = "handle_sighup()";
+	g_print("%s - data at: %p\n", fn, (void *)data);
+	g_application_quit(G_APPLICATION(data));
+	return G_SOURCE_CONTINUE;
+}
+
+static gint
+handle_sigusr1(gpointer data)
+{
+	gchar *fn = "handle_sigusr1()";
+	g_print("%s - data at: %p\n", fn, (void *)data);
+	g_application_quit(G_APPLICATION(data));
+	return G_SOURCE_CONTINUE;
+}
+
+static gint
+handle_sigusr2(gpointer data)
+{
+	gchar *fn = "handle_sigusr2()";
+	g_print("%s - data at: %p\n", fn, (void *)data);
+	g_application_quit(G_APPLICATION(data));
+	return G_SOURCE_CONTINUE;
+}
+
+static gint
+handle_sigwinch(gpointer data)
+{
+	gchar *fn = "handle_sigwinch()";
+	g_print("%s - data at: %p\n", fn, (void *)data);
+	g_application_quit(G_APPLICATION(data));
+	return G_SOURCE_CONTINUE;
+}
+
 int
 main(int argc, char **argv)
 {
@@ -211,6 +267,13 @@ main(int argc, char **argv)
 //	LxtermcApp *app = lxtermc_app_new("= main app =");
 	LxtermcApp *app = lxtermc_app_new();
 	g_print("%s - app at: %p - starting main application loop ...\n", fn, (void *)app);
+
+	g_unix_signal_add(SIGHUP, handle_sighup, app);
+	g_unix_signal_add(SIGINT, handle_sigint, app);
+	g_unix_signal_add(SIGTERM, handle_sigterm, app);
+	g_unix_signal_add(SIGUSR1, handle_sigusr1, app);
+	g_unix_signal_add(SIGUSR2, handle_sigusr2, app);
+	g_unix_signal_add(SIGWINCH, handle_sigwinch, app);
 
 	int gtk_status = g_application_run(G_APPLICATION(app), argc, argv);
 	g_object_unref(app);

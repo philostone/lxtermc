@@ -10,6 +10,18 @@
 #include "lxtermc.h"		// all components are included here
 //#include "tab.h"
 
+/*
+struct LxtermcTab {
+	GtkWidget parent_instance;
+
+	// subclass instance variables
+	lxtcwin_t	*win;		// back ref to win struct (win widget, later)
+	GtkWidget	*tab;
+	GtkWidget	*scrollwin;
+	GtkWidget	*vte;	
+}
+*/
+
 void
 lxtctab_free_at(lxtctab_t **tab)
 {
@@ -33,11 +45,22 @@ lxtctab_destroy(GtkWidget *gwid, lxtctab_t *tab)
 }
 */
 
+/* GFunc */
+void lxtctab_detach(gpointer tab_ptr, gpointer data)
+{
+	gchar *fn = "lxtctab_detach()";
+	lxtctab_t *tab = (lxtctab_t *)tab_ptr;
+	g_print("%s - '%s' - at: %p\n",
+		fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)tab);
+	tab->win = NULL;
+}
+
 void lxtctab_close(lxtctab_t *tab)
 {
-	gchar *fn = "lxtctab_close()";	
-	g_print("%s - '%s' - at: %p\n", fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)tab);
-	lxtcwin_close_tab(tab->win, tab);
+	gchar *fn = "lxtctab_close()";
+	g_print("%s - '%s' - at: %p\n",
+		fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)tab);
+	if (tab->win) lxtcwin_close_tab(tab->win, tab);
 	lxtctab_free_at(&tab);
 }
 
@@ -58,11 +81,12 @@ lxtctab_preferred_shell()
 }
 
 static void
-lxtctab_spawn_async_callback(VteTerminal *vte, int pid, GError *error, void *data)
+lxtctab_spawn_async_callback(VteTerminal *vte, GPid pid, GError *error, void *data)
 {
 	char *fn = "lxtctab_spawn_async_callback()";
 	g_print("%s - vte at: %p - pid: %i - error: %p, data: %p\n",
 		fn, (void *)vte, pid, (void *)error, data);
+//	vte_terminal_watch_child(vte, pid);
 }
 
 lxtctab_t *
@@ -76,12 +100,16 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 	tab->tab = gtk_label_new(title);
 	tab->scrollwin = gtk_scrolled_window_new();
 	tab->vte = GTK_WIDGET(lxtermc_vte_new(tab));
+//	VtePty *pty = VTE_TERMINAL(tab->vte)->get_pty();
 //	g_signal_connect(GTK_WIDGET(tab->scrollwin),
 //		"destroy", G_CALLBACK(lxtctab_destroy), tab);
 
 	// set up terminal properties
-	vte_terminal_set_size(VTE_TERMINAL(tab->vte), 100, 100);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(tab->vte), 1000);
+	vte_terminal_set_size(VTE_TERMINAL(tab->vte), 20, 20);
+	vte_terminal_set_scrollback_lines(VTE_TERMINAL(tab->vte), 100);
+
+//	g_signal_connect(VTE_TERMINAL(tab->vte), "child-exited",
+//		G_CALLBACK(vte_child_exited), NULL);
 
 	// construct main widget
 	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(tab->scrollwin),

@@ -3,9 +3,9 @@
 #ifndef _LXTERMCAPP_H_
 #define _LXTERMCAPP_H_
 
-G_BEGIN_DECLS
-
 #include "lxtermc.h"
+
+G_BEGIN_DECLS
 
 #define LXTERMC_TYPE_APP (lxtermc_app_get_type())
 

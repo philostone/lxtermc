@@ -174,7 +174,9 @@ lxtccfg_load(char *cfg_fname)
 		g_print("%s - config file has no [%s] group\n", fn, MAIN_GROUP);
 	}
 	gchar *key_str = NULL;
+
 	int set_index = 0;	// default palette
+
 	if (!(key_str = g_key_file_get_string(kf, MAIN_GROUP, PRESET_COLOR, NULL))) {
 		copy->preset_color = color_sets[0].name;
 	} else {

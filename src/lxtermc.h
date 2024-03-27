@@ -2,11 +2,11 @@
 #ifndef _LXTERMC_H_
 #define _LXTERMC_H_
 
-G_BEGIN_DECLS
-
 #include <glib.h>
 #include <gtk/gtk.h>
 #include <vte/vte.h>
+
+G_BEGIN_DECLS
 
 // required to resolv circular header dependencies
 typedef struct _cmdargs cmdargs_t;

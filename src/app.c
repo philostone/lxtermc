@@ -44,11 +44,6 @@ close_activated(GSimpleAction *act, GVariant *param, gpointer data)
 	char *fn = "close_activated()";
 	g_print("%s - '%s' is activated - param: %p - data: %p\n",
 		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
-//	GtkApplication *app = GTK_APPLICATION(data);
-//	GtkWindow *win = gtk_application_get_active_window(app);
-//	g_print("%s - app at: %p - active win at: %p -> emit close signal\n",
-//		fn, (void *)app, (void *)win);
-//	gtk_window_close(win);
 	gtk_window_close(GTK_WINDOW(data));
 }
 
@@ -63,11 +58,10 @@ lxtermc_app_activate(GApplication *app)
 	g_print("%s - #wins: %i - app at: %p - cmdargs ptr: %p\n",
 		fn, numwin, (void *)app, (void *)lxapp->cmdargs);
 
-	// construct win id and let lxtcwin_new() steal ownwership of lxapp->cmdargs
+	// construct win id, create win and let lxtcwin_new() steal ownwership of lxapp->cmdargs
 	gchar *id = g_strdup_printf("= win id #%u =", numwin+1);
 	lxtcwin_t *lxtcwin = lxtcwin_new(LXTERMC_APP(app), id);
 	g_free(id);
-//	g_print("%s - cmdargs ptr is now: %p\n", fn, (void *)lxapp->cmdargs);
 
 	// map menu actions to window
 	const GActionEntry win_entries[] = {
@@ -88,6 +82,9 @@ static void
 lxtermc_app_shutdown(GApplication *app)
 {
 	g_print("lxtermc_app_shutdown() - app at: %p\n", (void *)app);
+
+// clean up
+	g_ptr_array_foreach(LXTERMC_APP(app)->lxtcwins, lxtcwin_close, NULL);
 	G_APPLICATION_CLASS(lxtermc_app_parent_class)->shutdown(app);
 }
 
@@ -107,7 +104,6 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 		lxtermc_free_cmdargs_at(&(lxapp->cmdargs));
 	}
 	lxapp->cmdargs = g_new0(cmdargs_t, 1);
-//	lxapp->cmdargs->tabs = g_ptr_array_new();
 	if (lxtermc_args(argc, argv, lxapp->cmdargs) != TRUE) {
 		g_print("%s - lxtermc_args() returned with error\n", fn);
 		return FALSE;
@@ -201,19 +197,14 @@ lxtermc_app_startup(GApplication *app)
 	};
 	g_action_map_add_action_entries(G_ACTION_MAP(app),
 		app_entries, G_N_ELEMENTS(app_entries), app);
-/*/*
-	GSimpleAction *prefs_act = g_simple_action_new("prefs", NULL);
-	g_action_map_add_action(G_ACTION_MAP(GTK_APPLICATION(app)), G_ACTION(prefs_act));
-	g_signal_connect(prefs_act, "activate", G_CALLBACK(prefs_activated), app);
-*/
 }
 
 static void
 lxtermc_app_class_init(LxtermcAppClass *class)
 {
 	g_print("lxtermc_app_class_init() - class at: %p\n", (void *)class);
+
 	// virtual function overrides
-	// property and signal definitions
 	G_APPLICATION_CLASS(class)->startup = lxtermc_app_startup;
 //	G_APPLICATION_CLASS(class)->open = lxtermc_app_open;
 	G_APPLICATION_CLASS(class)->command_line = lxtermc_app_cmdline;
@@ -221,15 +212,16 @@ lxtermc_app_class_init(LxtermcAppClass *class)
 	G_APPLICATION_CLASS(class)->shutdown = lxtermc_app_shutdown;
 	G_OBJECT_CLASS(class)->dispose = lxtermc_app_dispose;
 	G_OBJECT_CLASS(class)->finalize = lxtermc_app_finalize;
+
+	// property and signal definitions
 }
 
 static void
 lxtermc_app_init(LxtermcApp *app)
 {
 	char *fn = "lxtermc_app_init()";
-	// no use showing label, it is not yet set...
-	// this function is called before g_object_new() returns ...
 	g_print("%s - app at: %p\n", fn, (void *)app);
+
 	// initializations
 	app->lxtcwins = g_ptr_array_new();
 }

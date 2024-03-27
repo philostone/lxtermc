@@ -20,15 +20,23 @@ lxtcwin_free_at(lxtcwin_t **win)
 	*win = NULL;
 }
 
-gboolean
-lxtcwin_close(GtkWindow *gwin, lxtcwin_t *lxwin)
+/* GFunc */
+void lxtcwin_close(gpointer lxtcwin_ptr, gpointer data)
 {
 	char *fn = "lxtcwin_close()";
+	lxtcwin_t *lxwin = (lxtcwin_t *)lxtcwin_ptr;
+	g_print("%s - lxwin at: %p - data at: %p\n", fn, lxwin->id, (void *)data);
+	gtk_window_close(GTK_WINDOW(lxwin->win));	
+}
+
+gboolean
+lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin)
+{
+	char *fn = "lxtcwin_close_request()";
 	g_print("%s - '%s' - gwin at: %p - lxwin at: %p\n", fn, lxwin->id, (void *)gwin, (void *)lxwin);
 
-// Here should all vte childs exit...
-
-
+// Before doing this, make sure terminals are in closeable state, HOW ????
+	g_ptr_array_foreach(lxwin->tabs, lxtctab_detach, NULL);
 	lxtcwin_free_at(&lxwin);
 	return FALSE; // let GtkWindow handle the rest ...
 }
@@ -82,7 +90,7 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		fn, (void *)win, (void *)win->win);
 
 	g_signal_connect(GTK_WINDOW(win->win),
-		"close-request", G_CALLBACK(lxtcwin_close), win);
+		"close-request", G_CALLBACK(lxtcwin_close_request), win);
 	gtk_window_set_title(GTK_WINDOW(win->win),
 		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
 	gtk_window_set_default_size(GTK_WINDOW(win->win),

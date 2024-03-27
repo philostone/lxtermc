@@ -3,9 +3,9 @@
 #ifndef _LXTERMC_WIN_H_
 #define _LXTERMC_WIN_H_
 
-G_BEGIN_DECLS
-
 #include "lxtermc.h"
+
+G_BEGIN_DECLS
 
 /* top level terminal window */
 
@@ -24,7 +24,10 @@ typedef struct _lxtcwin {
 lxtcwin_t *lxtcwin_new(LxtermcApp *app, const gchar *id);
 void lxtcwin_free_at(lxtcwin_t **win);
 
-gboolean lxtcwin_close(GtkWindow *gwin, lxtcwin_t *lxwin);
+/* GFunc */
+void lxtcwin_close(gpointer win, gpointer data);
+
+gboolean lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin);
 void lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab);
 
 G_END_DECLS
