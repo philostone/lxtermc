@@ -1,6 +1,7 @@
 /**/
 
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #include <glib/gi18n.h>
 #include <locale.h>
 #include <sys/types.h>		// this and next for getpwuid
@@ -74,6 +75,13 @@ lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab)
 	}
 }
 
+static gboolean
+lxtcwin_property_changed(GtkWidget *w, GdkEventProperty event, gpointer lxtcwin)
+{
+	gchar *fn = "lxtcwin_property_changed()";
+	g_print("%s - ...\n", fn);
+}
+
 lxtcwin_t *
 lxtcwin_new(LxtermcApp *app, const gchar *id)
 {
@@ -91,6 +99,8 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 
 	g_signal_connect(GTK_WINDOW(win->win),
 		"close-request", G_CALLBACK(lxtcwin_close_request), win);
+	g_signal_connect(GTK_WIDGET(win->win),
+		"property-notify-event", G_CALLBACK(lxtcwin_property_changed), win);
 	gtk_window_set_title(GTK_WINDOW(win->win),
 		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
 	gtk_window_set_default_size(GTK_WINDOW(win->win),
