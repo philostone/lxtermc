@@ -14,6 +14,7 @@ typedef struct _lxtctab {
 	GtkWidget	*tab;
 	GtkWidget	*scrollwin;
 	GtkWidget	*vte;
+	VtePty		*pty;
 } lxtctab_t;
 
 lxtctab_t *lxtctab_new(lxtcwin_t *win, gchar *title);
