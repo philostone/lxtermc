@@ -84,25 +84,50 @@ static void
 lxtctab_spawn_async_callback(VteTerminal *vte, GPid pid, GError *error, void *tab)
 {
 	char *fn = "lxtctab_spawn_async_callback()";
-	g_print("%s - vte at: %p - pid: %i - error: %p, tab: %p\n",
-		fn, (void *)vte, pid, (void *)error, tab);
-//	vte_terminal_watch_child(vte, pid);
+//	g_print("%s - vte at: %p - pid: %i - error: %p, tab: %p\n",
+//		fn, (void *)vte, pid, (void *)error, tab);
+	g_print("%s - start!\n", fn);
+	g_print("%s - vte  at: %p\n", fn, (void *)vte);
+	g_print("%s - tab  at: %p\n", fn, (void *)tab);
+	g_print("%s - pty pid: %i\n", fn, pid);
+	((lxtctab_t *)tab)->pty = vte_terminal_get_pty(VTE_TERMINAL(((lxtctab_t *)tab)->vte));
+	g_print("%s - pty  at: %p\n", fn, (void *)((lxtctab_t *)tab)->pty);
 }
+/*
+static void
+lxtctab_show(GtkWidget *wid, gpointer *unknown, gpointer *tab)
+{
+	gchar *fn = "lxtctab_show()";
+	g_print("%s - widget at: %p - unknown at: %p - tab at: %p\n",
+		fn, (void *)wid, (void *)unknown, (void *)tab);
+}
+
+static void
+lxtctab_hide(GtkWidget *wid, gpointer *unknown, gpointer *tab)
+{
+	gchar *fn = "lxtctab_show()";
+	g_print("%s - widget at: %p - unknown at: %p - tab at: %p\n",
+		fn, (void *)wid, (void *)unknown, (void *)tab);
+}
+*/
 
 lxtctab_t *
 lxtctab_new(lxtcwin_t *win, gchar *title)
 {
-	lxtctab_t *tab = g_new0(lxtctab_t, 1);
 	char *fn = "lxtctab_new()";
-	g_print("%s - '%s' - start! - at: %p\n", fn, title, (void *)tab);
+	g_print("%s - '%s' - start!\n", fn, title);
 
+	lxtctab_t *tab = g_new0(lxtctab_t, 1);
 	tab->win = win;
 	tab->tab = gtk_label_new(title);
 	tab->scrollwin = gtk_scrolled_window_new();
 	tab->vte = GTK_WIDGET(lxtermc_vte_new(tab));
-//	VtePty *pty = VTE_TERMINAL(tab->vte)->get_pty();
+
 //	g_signal_connect(GTK_WIDGET(tab->scrollwin),
 //		"destroy", G_CALLBACK(lxtctab_destroy), tab);
+
+//	g_signal_connect(GTK_WIDGET(tab->vte), "show", G_CALLBACK(lxtctab_show), tab);
+//	g_signal_connect(GTK_WIDGET(tab->vte), "hide", G_CALLBACK(lxtctab_hide), tab);
 
 	// set up terminal properties
 	vte_terminal_set_size(VTE_TERMINAL(tab->vte), 20, 20);
@@ -135,17 +160,12 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 		tab);				// callback user data
 	g_strfreev(exec);
 
-/*
-	int rows, cols;
-	GError *err = NULL;
-	tab->pty = vte_terminal_get_pty(VTE_TERMINAL(tab->vte));
-	vte_pty_get_size(tab->pty, &rows, &cols, &err);
-	if (err) {
-		g_print("%s - failed to get size of pty\n", fn);
-		g_error_free(err);
-	}
-	g_print("%s - terminal size is: %ix%i\n", fn, rows, cols);
-*/
+//	tab->pty = vte_terminal_get_pty(VTE_TERMINAL(tab->vte));
+	g_print("%s - '%s'\n", fn, title);
+	g_print("%s - lxtctab_t at: %p\n", fn, (void *)tab);
+	g_print("%s - lxtcwin_t at: %p\n", fn, (void *)tab->win);
+	g_print("%s - scrollwin at: %p\n", fn, (void *)tab->scrollwin);
+	g_print("%s -       vte at: %p\n", fn, (void *)tab->vte);
 
 	// makes all tabs exit if eof is typed, why?
 //	vte_terminal_feed(VTE_TERMINAL(tab->vte), "lxtermc\n", 8);

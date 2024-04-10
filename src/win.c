@@ -43,11 +43,11 @@ lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin)
 }
 
 static void
-new_tab(lxtcwin_t *win, const gchar *label)
+lxtcwin_new_tab(lxtcwin_t *win, const gchar *label)
 {
-	gchar *fn = "new_tab()";
+	gchar *fn = "lxtcwin_new_tab()";
 	gchar *tabstr = (label) ? g_strdup(label) : g_strdup_printf("Tab %u", win->tabs->len+1);
-	g_print("%s - creating '%s'\n", fn, tabstr);
+	g_print("%s - creating '%s' - tabs at: %p\n", fn, tabstr, (void *)win->tabs);
 	lxtctab_t *tab = lxtctab_new(win, tabstr);
 	g_ptr_array_add(win->tabs, tab);
 	gtk_notebook_append_page(GTK_NOTEBOOK(win->notebook),
@@ -59,7 +59,8 @@ void
 lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab)
 {
 	gchar *fn = "lxtcwin_close_tab()";
-	g_print("%s - win: '%s', tab: '%s'\n", fn, win->id, gtk_label_get_text(GTK_LABEL(tab->tab)));
+	g_print("%s - win: '%s' at: %p, tab: '%s' at: %p\n",
+		fn, win->id, (void *)win, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)tab);
 	if (!g_ptr_array_remove(win->tabs, tab)) {
 		g_print("%s - tab pointer not found...\n", fn);
 	}
@@ -75,11 +76,54 @@ lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab)
 	}
 }
 
-static gboolean
-lxtcwin_property_changed(GtkWidget *w, GdkEventProperty event, gpointer lxtcwin)
+static void lxtcwin_size(GtkWindow *gwin, lxtcwin_t *win)
 {
-	gchar *fn = "lxtcwin_property_changed()";
-	g_print("%s - ...\n", fn);
+	gchar *fn = "lxtcwin_size()";
+	if (!win->tabs || win->tabs->len < 1) return;
+	int r, c;
+	GError *err = NULL;
+
+
+// TODO, need to get active tab
+
+	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, 0);
+	VtePty *pty = VTE_PTY(tab->pty);
+	if (!vte_pty_get_size(pty, &r, &c, &err) || err) {
+		g_print("%s - error when getting pty size\n", fn);
+		g_error_free(err);
+		return;
+	}
+	if (win->rows != r || win->cols != c) {
+		g_print("%s - new pty size, %i x %i\n", fn, r, c);
+		win->rows = r;
+		win->cols = c;
+	}
+}
+
+static void
+lxtcwin_width(GtkWindow *gwin, gpointer unknown, lxtcwin_t *win)
+{
+//	gchar *fn = "lxtcwin_width()";
+//	g_print("%s - gwin: %p - unknown: %p - lxtcwin: %p\n",
+//		fn, (void *)gwin, (void *)unknown, (void *)win);
+	lxtcwin_size(gwin, win);
+}
+
+static void
+lxtcwin_height(GtkWindow *gwin, gpointer unknown, lxtcwin_t *win)
+{
+//	gchar *fn = "lxtcwin_height()";
+//	g_print("%s - gwin: %p - unknown: %p - lxtcwin: %p\n",
+//		fn, (void *)gwin, (void *)unknown, (void *)win);
+	lxtcwin_size(gwin, win);
+}
+
+static gboolean
+lxtcwin_tab_changed(GtkNotebook *nb, gint num, lxtcwin_t *win)
+{
+	gchar *fn = "lxtcwin_tab_changed()";
+	g_print("%s - nb at: %p, num: %i, win at: %p\n", fn, (void *)nb, num, (void *)win);
+	return false;
 }
 
 lxtcwin_t *
@@ -94,13 +138,18 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 	win->cmdargs = lxtcapp_steal_cmdargs(app);
 	win->cfg = lxtccfg_load(win->cmdargs->cfg);
 	win->win = gtk_application_window_new(GTK_APPLICATION(app));
+	win->rows = 0;
+	win->cols = 0;
 	g_print("%s - new lxtcwin_t struct at: %p - gtkappwin at: %p\n",
 		fn, (void *)win, (void *)win->win);
 
 	g_signal_connect(GTK_WINDOW(win->win),
 		"close-request", G_CALLBACK(lxtcwin_close_request), win);
-	g_signal_connect(GTK_WIDGET(win->win),
-		"property-notify-event", G_CALLBACK(lxtcwin_property_changed), win);
+	g_signal_connect(GTK_WINDOW(win->win),
+		"notify::default-width", G_CALLBACK(lxtcwin_width), win);
+	g_signal_connect(GTK_WINDOW(win->win),
+		"notify::default-height", G_CALLBACK(lxtcwin_height), win);
+
 	gtk_window_set_title(GTK_WINDOW(win->win),
 		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
 	gtk_window_set_default_size(GTK_WINDOW(win->win),
@@ -108,6 +157,10 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 
 	win->notebook = gtk_notebook_new();
 	win->tabs = g_ptr_array_new();
+	g_print("%s - tabs at: %p\n", fn, (void *)win->tabs);
+
+	g_signal_connect(GTK_NOTEBOOK(win->notebook),
+		"change-current-page", G_CALLBACK(lxtcwin_tab_changed), win);
 
 	if (win->cmdargs->tabs) {
 		char *tabs = g_strdup(win->cmdargs->tabs);
@@ -115,12 +168,12 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		char *next = NULL;
 		do {
 			if ((next = strchr(at, ','))) *next = '\0';
-			new_tab(win, at);
+			lxtcwin_new_tab(win, at);
 			if (next) at = next+1;
 		} while (next && *at);
 		g_free(tabs);
 	} else {
-		new_tab(win, NULL);
+		lxtcwin_new_tab(win, NULL);
 	}
 
 	gtk_window_set_child(GTK_WINDOW(win->win), GTK_WIDGET(win->notebook));

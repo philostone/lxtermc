@@ -19,6 +19,9 @@ typedef struct _lxtcwin {
 	GtkWidget *win;		// main window
 	GtkWidget *notebook;	// window child
 	GPtrArray *tabs;	// lxtctab_t pointers
+	lxtctab_t *visible_tab;
+	int rows;		// vte pty number of rows
+	int cols;		// vte pty number of cols
 } lxtcwin_t;
 
 lxtcwin_t *lxtcwin_new(LxtermcApp *app, const gchar *id);

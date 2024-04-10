@@ -59,15 +59,15 @@ static void
 lxtermc_vte_init(LxtermcVte *vte)
 {
 	gchar *fn = "lxtermc_vte_init()";
-	g_print("%s - vte at_ %p\n", fn, (void *)vte);
+	g_print("%s - vte at: %p\n", fn, (void *)vte);
 }
 
 LxtermcVte *
 lxtermc_vte_new(lxtctab_t *tab)
 {
 	char *fn = "lxtermc_vte_new()";
-	g_print("%s - start!\n", fn);
 	LxtermcVte *vte = g_object_new(LXTERMC_TYPE_VTE, NULL);
+	g_print("%s - new vte at: %p\n", fn, (void *)vte);
 	vte->tab = tab;
 	return vte;
 }
