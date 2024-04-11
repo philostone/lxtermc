@@ -7,20 +7,7 @@
 #include <pwd.h>
 #include <vte/vte.h>
 
-#include "lxtermc.h"		// all components are included here
-//#include "tab.h"
-
-/*
-struct LxtermcTab {
-	GtkWidget parent_instance;
-
-	// subclass instance variables
-	lxtcwin_t	*win;		// back ref to win struct (win widget, later)
-	GtkWidget	*tab;
-	GtkWidget	*scrollwin;
-	GtkWidget	*vte;	
-}
-*/
+#include "lxtermc.h"		// all lxtermc components are included here
 
 void
 lxtctab_free_at(lxtctab_t **tab)
@@ -160,7 +147,6 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 		tab);				// callback user data
 	g_strfreev(exec);
 
-//	tab->pty = vte_terminal_get_pty(VTE_TERMINAL(tab->vte));
 	g_print("%s - '%s'\n", fn, title);
 	g_print("%s - lxtctab_t at: %p\n", fn, (void *)tab);
 	g_print("%s - lxtcwin_t at: %p\n", fn, (void *)tab->win);

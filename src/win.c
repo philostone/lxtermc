@@ -118,12 +118,12 @@ lxtcwin_height(GtkWindow *gwin, gpointer unknown, lxtcwin_t *win)
 	lxtcwin_size(gwin, win);
 }
 
-static gboolean
-lxtcwin_tab_changed(GtkNotebook *nb, gint num, lxtcwin_t *win)
+static void
+lxtcwin_tab_switched(GtkNotebook *nb, GtkWidget *wid, guint num, lxtcwin_t *win)
 {
-	gchar *fn = "lxtcwin_tab_changed()";
-	g_print("%s - nb at: %p, num: %i, win at: %p\n", fn, (void *)nb, num, (void *)win);
-	return false;
+	gchar *fn = "lxtcwin_tab_switched()";
+	g_print("%s - nb at: %p, wid at: %p, num: %u, win at: %p\n",
+		fn, (void *)nb, (void *)wid, num, (void *)win);
 }
 
 lxtcwin_t *
@@ -160,7 +160,7 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 	g_print("%s - tabs at: %p\n", fn, (void *)win->tabs);
 
 	g_signal_connect(GTK_NOTEBOOK(win->notebook),
-		"change-current-page", G_CALLBACK(lxtcwin_tab_changed), win);
+		"switch-page", G_CALLBACK(lxtcwin_tab_switched), win);
 
 	if (win->cmdargs->tabs) {
 		char *tabs = g_strdup(win->cmdargs->tabs);
@@ -177,5 +177,8 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 	}
 
 	gtk_window_set_child(GTK_WINDOW(win->win), GTK_WIDGET(win->notebook));
+
+	int page = gtk_notebook_get_current_page(win->notebook);
+	g_print("%s - current page is: %i\n", fn, page);
 	return win;
 }
