@@ -13,7 +13,7 @@ struct _LxtermcApp {
 
 	// subclass instance variables
 	cmdargs_t *cmdargs;		// temporary ownership, transferred to lxtermwin instance
-	GPtrArray *lxtcwins;		// array of pointers to lxtermcwin instances
+	GPtrArray *lxtcwins;		// array of pointers to lxtermcwin instances	
 };
 
 G_DEFINE_TYPE(LxtermcApp, lxtermc_app, GTK_TYPE_APPLICATION)
@@ -33,6 +33,8 @@ lxtermc_app_open(GApplication *app, GFile **files, int nfiles, const char *hint)
 cmdargs_t *
 lxtcapp_steal_cmdargs(LxtermcApp *app)
 {
+	gchar *fn = "lxtcapp_steal_cmdargs()";
+	g_print("%s\n", fn);
 	cmdargs_t *cargs = app->cmdargs;
 	app->cmdargs = NULL;
 	return cargs;
@@ -41,16 +43,18 @@ lxtcapp_steal_cmdargs(LxtermcApp *app)
 static void
 close_activated(GSimpleAction *act, GVariant *param, gpointer data)
 {
-	char *fn = "close_activated()";
+	gchar *fn = "close_activated()";
 	g_print("%s - '%s' is activated - param: %p - data: %p\n",
 		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
 	gtk_window_close(GTK_WINDOW(data));
+	g_print("%s - end\n", fn);
 }
 
 static void
 lxtermc_app_activate(GApplication *app)
 {
 	G_APPLICATION_CLASS(lxtermc_app_parent_class)->activate(app);
+
 	gchar *fn = "lxtermc_app_activate()";
 	LxtermcApp *lxapp = LXTERMC_APP(app);
 	guint numwin = lxapp->lxtcwins->len;
@@ -81,23 +85,27 @@ lxtermc_app_activate(GApplication *app)
 static void
 lxtermc_app_shutdown(GApplication *app)
 {
-	g_print("lxtermc_app_shutdown() - app at: %p\n", (void *)app);
+	gchar *fn = "lxtermc_app_shutdown()";
+	g_print("%s - app at: %p\n", fn, (void *)app);
 
 // clean up
 	g_ptr_array_foreach(LXTERMC_APP(app)->lxtcwins, lxtcwin_close, NULL);
 	G_APPLICATION_CLASS(lxtermc_app_parent_class)->shutdown(app);
+	g_print("%s - end\n", fn);
 }
 
 static int
 lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 {
-	char *fn = "lxtermc_app_cmdline()";
+	gchar *fn = "lxtermc_app_cmdline()";
+	g_print("%s - app at: %p - cmdline at: %p\n",
+		fn, (void *)app, (void *)cmdline);
+
 	LxtermcApp *lxapp = LXTERMC_APP(app);
 	gint argc;
 	gchar **argv = g_application_command_line_get_arguments(cmdline, &argc);
-	g_print("%s - app at: %p - cmdline at: %p\n",
-		fn, (void *)lxapp, (void *)cmdline);
-	for (int i = 0; i < argc; i++) g_print("%s - arg #%i: %s\n", fn, i, argv[i]);
+	for (int i = 0; i < argc; i++)
+		g_print("%s - arg #%i (%i): %s\n", fn, i, argc-1, argv[i]);
 
 	if (lxapp->cmdargs) {
 		g_print("%s - cmdargs needs freeing - why???\n", fn);
@@ -131,7 +139,7 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 	if (!lxapp->cmdargs->locale)
 		lxapp->cmdargs->locale = g_strdup(LXTERMC_DEFAULT_LOCALE);
 	setlocale(LC_ALL, "");
-	g_print("%s - at: %p - setting locale to %s\n",
+	g_print("%s - app at: %p - setting locale to %s\n",
 		fn, (void *)lxapp, setlocale(LC_MESSAGES, lxapp->cmdargs->locale));
 	bindtextdomain(GETTEXT_PACKAGE, LOCALE_DIR);
 	bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
@@ -150,6 +158,7 @@ lxtermc_app_dispose(GObject *obj)
 {
 	gchar *fn ="lxtermc_app_dispose()";
 	g_print("%s - at: %p\n", fn, (void *)obj);
+	g_print("%s - end, handing over to parent...\n", fn);
 	G_OBJECT_CLASS(lxtermc_app_parent_class)->dispose(obj);
 }
 
@@ -168,6 +177,7 @@ lxtermc_app_finalize(GObject *obj)
 	g_print("%s - freeing lxwins array of %i ptrs\n", fn, lxapp->lxtcwins->len);
 	g_ptr_array_free(lxapp->lxtcwins, TRUE);
 
+	g_print("%s - end, handing over to parent...\n", fn);
 	G_OBJECT_CLASS(lxtermc_app_parent_class)->finalize(obj);
 }
 
@@ -177,13 +187,15 @@ prefs_activated(GSimpleAction *act, GVariant *param, gpointer data)
 	char *fn = "prefs_activated()";
 	g_print("%s - '%s' is activated - param: %p - data: %p\n",
 		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
+	g_print("%s - end\n", fn);
 }
 static void
 lxtermc_app_startup(GApplication *app)
 {
+	gchar *fn = "lxtermc_app_startup()";
+	g_print("%s - start - calling parent startup...\n", fn);
 	G_APPLICATION_CLASS(lxtermc_app_parent_class)->startup(app);
 
-	gchar *fn = "lxtermc_app_startup()";
 	g_print("%s - at: %p\n", fn, (void *)app);
 
 	GtkBuilder *builder = gtk_builder_new_from_resource("/com/github/philostone/lxtermc/menu.ui");
@@ -197,12 +209,14 @@ lxtermc_app_startup(GApplication *app)
 	};
 	g_action_map_add_action_entries(G_ACTION_MAP(app),
 		app_entries, G_N_ELEMENTS(app_entries), app);
+	g_print("%s - end\n", fn);
 }
 
 static void
 lxtermc_app_class_init(LxtermcAppClass *class)
 {
-	g_print("lxtermc_app_class_init() - class at: %p\n", (void *)class);
+	gchar *fn = "lxtermc_app_class_init()";
+	g_print("%s - class at: %p\n", fn, (void *)class);
 
 	// virtual function overrides
 	G_APPLICATION_CLASS(class)->startup = lxtermc_app_startup;
@@ -214,22 +228,25 @@ lxtermc_app_class_init(LxtermcAppClass *class)
 	G_OBJECT_CLASS(class)->finalize = lxtermc_app_finalize;
 
 	// property and signal definitions
+	g_print("%s - end\n", fn);
 }
 
 static void
 lxtermc_app_init(LxtermcApp *app)
 {
-	char *fn = "lxtermc_app_init()";
+	gchar *fn = "lxtermc_app_init()";
 	g_print("%s - app at: %p\n", fn, (void *)app);
 
 	// initializations
 	app->lxtcwins = g_ptr_array_new();
+	g_print("%s - end\n", fn);
 }
 
 LxtermcApp *
 lxtermc_app_new()
 {
-	g_print("lxtermc_app_new()\n");
+	gchar *fn = "lxtermc_app_new()";
+	g_print("%s\n", fn);
 	return g_object_new(LXTERMC_TYPE_APP,
 		"application-id", LXTERMC_APP_ID,
 		"flags", G_APPLICATION_HANDLES_COMMAND_LINE,

@@ -15,16 +15,18 @@ struct _LxtermcVte {
 	VteTerminal parent_instance;
 
 	// subclass instance variables
-	lxtctab_t *tab;
+	lxtctab_t *tab;		// back reference
 };
 
 G_DEFINE_TYPE(LxtermcVte, lxtermc_vte, VTE_TYPE_TERMINAL)
 
 static void
-vte_child_exited(VteTerminal *vte, gint status)
+lxtermc_vte_child_exited(VteTerminal *vte, gint status)
 {
-	char *fn = "vte_child_exited()";
+	gchar *fn = "lxtermc_vte_child_exited()";
+	lxtctab_t *tab = LXTERMC_VTE(vte);
 	g_print("%s - at: %p, status: %i\n", fn, (void *)vte, status);
+
 	lxtctab_close(LXTERMC_VTE(vte)->tab);
 //	VTE_TERMINAL_CLASS(lxtermc_vte_parent_class)->child_exited(vte, status);
 }
@@ -39,9 +41,9 @@ vte_eof(VteTerminal *vte)
 }
 */
 
-static void vte_resize_window(VteTerminal *vte, guint width, guint height)
+static void lxtermc_vte_resize_window(VteTerminal *vte, guint width, guint height)
 {
-	gchar *fn = "vte_resize_window()";
+	gchar *fn = "lxtermc_vte_resize_window()";
 	g_print("%s - at: %p - to width: %u, height: %u\n", fn, (void *)vte, width, height);
 }
 
@@ -50,8 +52,8 @@ lxtermc_vte_class_init(LxtermcVteClass *class)
 {
 	gchar *fn = "lxtermc_vte_class_init()";
 	g_print("%s - class at: %p\n", fn, (void *)class);
-	VTE_TERMINAL_CLASS(class)->child_exited = vte_child_exited;
-	VTE_TERMINAL_CLASS(class)->resize_window = vte_resize_window;
+	VTE_TERMINAL_CLASS(class)->child_exited = lxtermc_vte_child_exited;
+	VTE_TERMINAL_CLASS(class)->resize_window = lxtermc_vte_resize_window;
 //	VTE_TERMINAL_CLASS(class)->eof = vte_eof;
 }
 

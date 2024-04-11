@@ -12,13 +12,14 @@
 void
 lxtctab_free_at(lxtctab_t **tab)
 {
-	char *fn = "lxtctab_free_at()";
+	gchar *fn = "lxtctab_free_at()";
 	g_print("%s  '%s' - start!\n", fn, gtk_label_get_text(GTK_LABEL((*tab)->tab)));
 //	g_object_unref((*tab)->tab);
 //	g_object_unref((*tab)->scrollwin);
 //	g_object_unref((*tab)->vte);
 	g_free(*tab);
 	*tab = NULL;
+	g_print("%s - end\n", fn);
 }
 
 /*
@@ -33,22 +34,29 @@ lxtctab_destroy(GtkWidget *gwid, lxtctab_t *tab)
 */
 
 /* GFunc */
-void lxtctab_detach(gpointer tab_ptr, gpointer data)
+void lxtctab_detach(gpointer tab, gpointer data)
 {
 	gchar *fn = "lxtctab_detach()";
-	lxtctab_t *tab = (lxtctab_t *)tab_ptr;
-	g_print("%s - '%s' - at: %p - data at:%p\n",
-		fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)tab, (void *)data);
-	tab->win = NULL;
+	g_print("%s\n", fn);
+	lxtctab_t *lxtctab = (lxtctab_t *)tab;
+	const gchar *str = gtk_label_get_text(GTK_LABEL(lxtctab->tab)); 
+//	g_print("%s - at: %p - data at:%p\n", fn, (void *)tab, (void *)data);
+	g_print("%s - '%s' - at: %p - data at:%p\n", fn, str, (void *)lxtctab, (void *)data);
+//	((lxtctab_t *)tab)->win = NULL;
+	lxtctab->win = NULL;
+	g_print("%s - end\n", fn);
 }
 
 void lxtctab_close(lxtctab_t *tab)
 {
 	gchar *fn = "lxtctab_close()";
-	g_print("%s - '%s' - at: %p\n",
-		fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)tab);
+	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->tab)); 
+	g_print("%s - '%s' - at: %p\n", fn, str, (void *)tab);
+
+// does not all tabs have a win ???
 	if (tab->win) lxtcwin_close_tab(tab->win, tab);
 	lxtctab_free_at(&tab);
+	g_print("%s - end\n", fn);
 }
 
 static const gchar *
@@ -68,17 +76,21 @@ lxtctab_preferred_shell()
 }
 
 static void
-lxtctab_spawn_async_callback(VteTerminal *vte, GPid pid, GError *error, void *tab)
+lxtctab_spawn_async_callback(VteTerminal *vte, GPid pid, GError *error, void *tab_data)
 {
 	char *fn = "lxtctab_spawn_async_callback()";
+	lxtctab_t *tab = (lxtctab_t *)tab_data;
+//	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->tab)); 
 //	g_print("%s - vte at: %p - pid: %i - error: %p, tab: %p\n",
 //		fn, (void *)vte, pid, (void *)error, tab);
 	g_print("%s - start!\n", fn);
 	g_print("%s - vte  at: %p\n", fn, (void *)vte);
 	g_print("%s - tab  at: %p\n", fn, (void *)tab);
+//	g_print("%s - tab  at: %p - '%s'\n", fn, (void *)tab, str);
 	g_print("%s - pty pid: %i\n", fn, pid);
 	((lxtctab_t *)tab)->pty = vte_terminal_get_pty(VTE_TERMINAL(((lxtctab_t *)tab)->vte));
 	g_print("%s - pty  at: %p\n", fn, (void *)((lxtctab_t *)tab)->pty);
+	g_print("%s - end\n", fn);
 }
 /*
 static void
@@ -101,7 +113,7 @@ lxtctab_hide(GtkWidget *wid, gpointer *unknown, gpointer *tab)
 lxtctab_t *
 lxtctab_new(lxtcwin_t *win, gchar *title)
 {
-	char *fn = "lxtctab_new()";
+	gchar *fn = "lxtctab_new()";
 	g_print("%s - '%s' - start!\n", fn, title);
 
 	lxtctab_t *tab = g_new0(lxtctab_t, 1);
@@ -152,6 +164,7 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 	g_print("%s - lxtcwin_t at: %p\n", fn, (void *)tab->win);
 	g_print("%s - scrollwin at: %p\n", fn, (void *)tab->scrollwin);
 	g_print("%s -       vte at: %p\n", fn, (void *)tab->vte);
+	g_print("%s - end\n", fn);
 
 	// makes all tabs exit if eof is typed, why?
 //	vte_terminal_feed(VTE_TERMINAL(tab->vte), "lxtermc\n", 8);

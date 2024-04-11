@@ -42,9 +42,9 @@ gchar lxtermc_usage[] = {
  * option data is not found or if unexpected option data is found (i.e. an unexpected =)
 */
 static int
-is_opt(int argc, char **argv, int *at, char **opt_arg, int num_optids, ...)
+lxtermc_is_opt(int argc, char **argv, int *at, char **opt_arg, int num_optids, ...)
 {
-	char *fn = "is_opt()";
+	char *fn = "lxtermc_is_opt()";
 	char *opt = NULL;
 	va_list ap;
 	va_start(ap, num_optids);
@@ -113,41 +113,41 @@ lxtermc_args(int argc, char **argv, cmdargs_t *cargs)
 	int at = 0;	// at is set to -1 by is_opt() on (option argument expectation) error
 	// cargs->cmd = argv[0] -> not used
 	while (++at < argc && at > 0) {
-		if (is_opt(argc, argv, &at, &(cargs->exec), 2, "-e", "--command"))
+		if (lxtermc_is_opt(argc, argv, &at, &(cargs->exec), 2, "-e", "--command"))
 			continue;
-		if (is_opt(argc, argv, &at, NULL, 2, "-l", "--login_shell")) {
+		if (lxtermc_is_opt(argc, argv, &at, NULL, 2, "-l", "--login_shell")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, &(cargs->cfg), 2, "-c", "--config"))
+		if (lxtermc_is_opt(argc, argv, &at, &(cargs->cfg), 2, "-c", "--config"))
 			continue;
-		if (is_opt(argc, argv, &at, &(cargs->cfg), 2, "--config-ro")) {
+		if (lxtermc_is_opt(argc, argv, &at, &(cargs->cfg), 2, "--config-ro")) {
 			cargs->cfg_ro = true;
 			continue;
 		}
-		if (is_opt(argc, argv, &at, &(cargs->title), 3, "-t", "-T", "--title"))
+		if (lxtermc_is_opt(argc, argv, &at, &(cargs->title), 3, "-t", "-T", "--title"))
 			continue;
-		if (is_opt(argc, argv, &at, &(cargs->tabs), 1, "--tabs"))
+		if (lxtermc_is_opt(argc, argv, &at, &(cargs->tabs), 1, "--tabs"))
 			continue;
-		if (is_opt(argc, argv, &at, NULL, 1, "--working-directory")) {
+		if (lxtermc_is_opt(argc, argv, &at, NULL, 1, "--working-directory")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, NULL, 1, "--no-remote")) {
+		if (lxtermc_is_opt(argc, argv, &at, NULL, 1, "--no-remote")) {
 			g_print("\nnot implemented yet!\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, &(cargs->locale), 1, "--locale"))
+		if (lxtermc_is_opt(argc, argv, &at, &(cargs->locale), 1, "--locale"))
 			continue;
-		if (is_opt(argc, argv, &at, NULL, 2, "-v", "--version")) {
+		if (lxtermc_is_opt(argc, argv, &at, NULL, 2, "-v", "--version")) {
 			g_print("\n"LXTERMC_NAME" - "LXTERMC_VERSION"\n");
 			at = 0;
 			break;
 		}
-		if (is_opt(argc, argv, &at, NULL, 2, "-h", "--help")) {
+		if (lxtermc_is_opt(argc, argv, &at, NULL, 2, "-h", "--help")) {
 			g_print("\n%s\n", lxtermc_usage);
 			at = 0;
 			break;
@@ -208,7 +208,7 @@ handle_sighup(gpointer data)
 static gint
 handle_sigint(gpointer data)
 {
-	gchar *fn = "handle_sighup()";
+	gchar *fn = "handle_sigint()";
 	g_print("%s - data at: %p\n", fn, (void *)data);
 	g_application_quit(G_APPLICATION(data));
 	return G_SOURCE_CONTINUE;
@@ -228,7 +228,7 @@ handle_sigusr1(gpointer data)
 {
 	gchar *fn = "handle_sigusr1()";
 	g_print("%s - data at: %p\n", fn, (void *)data);
-	g_application_quit(G_APPLICATION(data));
+//	g_application_quit(G_APPLICATION(data));
 	return G_SOURCE_CONTINUE;
 }
 
@@ -237,7 +237,7 @@ handle_sigusr2(gpointer data)
 {
 	gchar *fn = "handle_sigusr2()";
 	g_print("%s - data at: %p\n", fn, (void *)data);
-	g_application_quit(G_APPLICATION(data));
+//	g_application_quit(G_APPLICATION(data));
 	return G_SOURCE_CONTINUE;
 }
 
@@ -246,7 +246,7 @@ handle_sigwinch(gpointer data)
 {
 	gchar *fn = "handle_sigwinch()";
 	g_print("%s - data at: %p\n", fn, (void *)data);
-	g_application_quit(G_APPLICATION(data));
+//	g_application_quit(G_APPLICATION(data));
 	return G_SOURCE_CONTINUE;
 }
 

@@ -3,7 +3,6 @@
 #include <glib.h>
 
 #include "lxtermc.h"		// all components are included here
-//#include "cfg.h"
 
 // TODO: update to rgba
 colorset_t color_sets[] = {
@@ -76,7 +75,8 @@ colorset_t color_sets[] = {
 void
 lxtccfg_free_at(lxtccfg_t **cfg)
 {
-	g_print("lxtccfg_free_at() - start!\n");
+	gchar *fn = "lxtxxfg_free()";
+	g_print("%s\n", fn);
 
 	g_key_file_free((*cfg)->keyfile);
 //	g_free((*cfg)->config);
@@ -151,13 +151,13 @@ set_double(GKeyFile *kf, gchar *key, double *ptr, double default_value)
 }
 
 /* load config from <cfg_fname>, if NULL, or if reading and/or parsing from file fails,
- * use default settings instead,
+ * use default settings,
  * return pointer to allocated struct, new struct is owned by caller
  */
 lxtccfg_t *
 lxtccfg_load(char *cfg_fname)
 {
-	char *fn = "lxtccfg_load()";
+	gchar *fn = "lxtccfg_load()";
 	g_print("%s - loading '%s'\n", fn, cfg_fname);
 	lxtccfg_t *copy = g_new0(lxtccfg_t, 1);
 	GKeyFile *kf = copy->keyfile = g_key_file_new();
@@ -175,7 +175,7 @@ lxtccfg_load(char *cfg_fname)
 	}
 	gchar *key_str = NULL;
 
-	int set_index = 0;	// default palette
+//	int set_index = 0;	// default palette
 
 	if (!(key_str = g_key_file_get_string(kf, MAIN_GROUP, PRESET_COLOR, NULL))) {
 		copy->preset_color = color_sets[0].name;
@@ -183,7 +183,7 @@ lxtccfg_load(char *cfg_fname)
 		for (int i = 0; i < NUM_COLOR_SETS; i++) {
 			if (!g_strcmp0(key_str, color_sets[i].name)) {
 				copy->preset_color = color_sets[i].name;
-				set_index = i;
+//				set_index = i;
 				break;
 			}
 		}
@@ -237,5 +237,6 @@ lxtccfg_load(char *cfg_fname)
 	set_boolean(kf, DISABLE_ALT, &copy->disable_alt, LXTERMC_DEFAULT_DISABLE_ALT);
 	set_boolean(kf, DISABLE_CONFIRM, &copy->disable_confirm, LXTERMC_DEFAULT_DISABLE_CONFIRM);
 
+	g_print("%s - end\n", fn);
 	return copy;
 }
