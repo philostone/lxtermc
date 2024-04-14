@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 #define LXTERMC_TYPE_VTE (lxtermc_vte_get_type())
 G_DECLARE_FINAL_TYPE(LxtermcVte, lxtermc_vte, LXTERMC, VTE, VteTerminal)
 
-LxtermcVte *lxtermc_vte_new(lxtctab_t *tab);
+//LxtermcVte *lxtermc_vte_new(lxtctab_t *tab);
+GtkWidget *lxtermc_vte_new(lxtctab_t *tab);
 
 G_END_DECLS
 

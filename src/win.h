@@ -16,12 +16,12 @@ typedef struct _lxtcwin {
 	lxtccfg_t	*cfg;		// preferences for this window
 
 	// window components
-	GtkWidget *win;		// main window
-	GtkWidget *notebook;	// window child
-	GPtrArray *tabs;	// lxtctab_t pointers
-	lxtctab_t *visible_tab;
-	int rows;		// vte pty number of rows
-	int cols;		// vte pty number of cols
+	GtkWidget	*win;		// main window
+	GtkWidget	*notebook;	// window child
+	GPtrArray	*tabs;		// lxtctab_t pointers
+	lxtctab_t	*visible_tab;
+	int rows;			// vte pty number of rows
+	int cols;			// vte pty number of cols
 } lxtcwin_t;
 
 lxtcwin_t *lxtcwin_new(LxtermcApp *app, const gchar *id);

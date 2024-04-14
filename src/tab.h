@@ -11,8 +11,8 @@ G_BEGIN_DECLS
 
 typedef struct _lxtctab {
 	lxtcwin_t	*win;		// back ref to win struct
-	GtkWidget	*tab;
 	GtkWidget	*scrollwin;	// child of GtkNotebook
+	GtkWidget	*label;
 	GtkWidget	*vte;
 	VtePty		*pty;
 } lxtctab_t;

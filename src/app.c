@@ -242,7 +242,8 @@ lxtermc_app_init(LxtermcApp *app)
 	g_print("%s - end\n", fn);
 }
 
-LxtermcApp *
+//LxtermcApp *
+GtkWidget *
 lxtermc_app_new()
 {
 	gchar *fn = "lxtermc_app_new()";

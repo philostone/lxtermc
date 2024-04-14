@@ -13,7 +13,9 @@ void
 lxtctab_free_at(lxtctab_t **tab)
 {
 	gchar *fn = "lxtctab_free_at()";
-	g_print("%s  '%s' - start!\n", fn, gtk_label_get_text(GTK_LABEL((*tab)->tab)));
+	const gchar *str = gtk_label_get_text(GTK_LABEL((*tab)->label));
+	g_print("%s  '%s' - start!\n", fn, str);
+//	g_print("%s  '%s' - start!\n", fn, gtk_label_get_text(GTK_LABEL((*tab)->tab)));
 //	g_object_unref((*tab)->tab);
 //	g_object_unref((*tab)->scrollwin);
 //	g_object_unref((*tab)->vte);
@@ -33,16 +35,13 @@ lxtctab_destroy(GtkWidget *gwid, lxtctab_t *tab)
 }
 */
 
-/* GFunc */
+/* GFunc - for passing to g_ptr_array_foreach() */
 void lxtctab_detach(gpointer tab, gpointer data)
 {
 	gchar *fn = "lxtctab_detach()";
-	g_print("%s\n", fn);
 	lxtctab_t *lxtctab = (lxtctab_t *)tab;
-	const gchar *str = gtk_label_get_text(GTK_LABEL(lxtctab->tab)); 
-//	g_print("%s - at: %p - data at:%p\n", fn, (void *)tab, (void *)data);
+	const gchar *str = gtk_label_get_text(GTK_LABEL(lxtctab->label));
 	g_print("%s - '%s' - at: %p - data at:%p\n", fn, str, (void *)lxtctab, (void *)data);
-//	((lxtctab_t *)tab)->win = NULL;
 	lxtctab->win = NULL;
 	g_print("%s - end\n", fn);
 }
@@ -50,11 +49,10 @@ void lxtctab_detach(gpointer tab, gpointer data)
 void lxtctab_close(lxtctab_t *tab)
 {
 	gchar *fn = "lxtctab_close()";
-	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->tab)); 
+	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label)); 
 	g_print("%s - '%s' - at: %p\n", fn, str, (void *)tab);
-
-// does not all tabs have a win ???
 	if (tab->win) lxtcwin_close_tab(tab->win, tab);
+	else g_print("%s - tag '%s' has no win, how come?\n", fn, str);
 	lxtctab_free_at(&tab);
 	g_print("%s - end\n", fn);
 }
@@ -80,16 +78,15 @@ lxtctab_spawn_async_callback(VteTerminal *vte, GPid pid, GError *error, void *ta
 {
 	char *fn = "lxtctab_spawn_async_callback()";
 	lxtctab_t *tab = (lxtctab_t *)tab_data;
-//	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->tab)); 
-//	g_print("%s - vte at: %p - pid: %i - error: %p, tab: %p\n",
-//		fn, (void *)vte, pid, (void *)error, tab);
+	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label)); 
+	g_print("%s - vte at: %p - pid: %i - error: %p, tab_data: %p\n",
+		fn, (void *)vte, pid, (void *)error, (void *)tab_data);
 	g_print("%s - start!\n", fn);
 	g_print("%s - vte  at: %p\n", fn, (void *)vte);
-	g_print("%s - tab  at: %p\n", fn, (void *)tab);
-//	g_print("%s - tab  at: %p - '%s'\n", fn, (void *)tab, str);
+	g_print("%s - tab  at: %p - '%s'\n", fn, (void *)tab, str);
 	g_print("%s - pty pid: %i\n", fn, pid);
-	((lxtctab_t *)tab)->pty = vte_terminal_get_pty(VTE_TERMINAL(((lxtctab_t *)tab)->vte));
-	g_print("%s - pty  at: %p\n", fn, (void *)((lxtctab_t *)tab)->pty);
+	tab->pty = vte_terminal_get_pty(VTE_TERMINAL((tab)->vte));
+	g_print("%s - pty  at: %p\n", fn, (void *)tab->pty);
 	g_print("%s - end\n", fn);
 }
 /*
@@ -118,9 +115,9 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 
 	lxtctab_t *tab = g_new0(lxtctab_t, 1);
 	tab->win = win;
-	tab->tab = gtk_label_new(title);
 	tab->scrollwin = gtk_scrolled_window_new();
-	tab->vte = GTK_WIDGET(lxtermc_vte_new(tab));
+	tab->label = gtk_label_new(title);
+	tab->vte = lxtermc_vte_new(tab);
 
 //	g_signal_connect(GTK_WIDGET(tab->scrollwin),
 //		"destroy", G_CALLBACK(lxtctab_destroy), tab);
@@ -133,8 +130,7 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(tab->vte), 100);
 
 	// construct main widget
-	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(tab->scrollwin),
-		GTK_WIDGET(tab->vte));
+	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(tab->scrollwin), tab->vte);
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(tab->scrollwin),
 		GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 

@@ -8,8 +8,6 @@
 #include <vte/vte.h>
 
 #include "lxtermc.h"		// all components are included here
-//#include "vte.h"
-//#include "tab.h"
 
 struct _LxtermcVte {
 	VteTerminal parent_instance;
@@ -24,7 +22,7 @@ static void
 lxtermc_vte_child_exited(VteTerminal *vte, gint status)
 {
 	gchar *fn = "lxtermc_vte_child_exited()";
-	lxtctab_t *tab = LXTERMC_VTE(vte);
+//	lxtctab_t *tab = LXTERMC_VTE(vte);
 	g_print("%s - at: %p, status: %i\n", fn, (void *)vte, status);
 
 	lxtctab_close(LXTERMC_VTE(vte)->tab);
@@ -64,12 +62,14 @@ lxtermc_vte_init(LxtermcVte *vte)
 	g_print("%s - vte at: %p\n", fn, (void *)vte);
 }
 
-LxtermcVte *
+//LxtermcVte *
+GtkWidget *
 lxtermc_vte_new(lxtctab_t *tab)
 {
 	char *fn = "lxtermc_vte_new()";
-	LxtermcVte *vte = g_object_new(LXTERMC_TYPE_VTE, NULL);
+//	LxtermcVte *vte = g_object_new(LXTERMC_TYPE_VTE, NULL);
+	GtkWidget *vte = g_object_new(LXTERMC_TYPE_VTE, NULL);
 	g_print("%s - new vte at: %p\n", fn, (void *)vte);
-	vte->tab = tab;
+	LXTERMC_VTE(vte)->tab = tab;
 	return vte;
 }

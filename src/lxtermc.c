@@ -228,7 +228,6 @@ handle_sigusr1(gpointer data)
 {
 	gchar *fn = "handle_sigusr1()";
 	g_print("%s - data at: %p\n", fn, (void *)data);
-//	g_application_quit(G_APPLICATION(data));
 	return G_SOURCE_CONTINUE;
 }
 
@@ -237,7 +236,6 @@ handle_sigusr2(gpointer data)
 {
 	gchar *fn = "handle_sigusr2()";
 	g_print("%s - data at: %p\n", fn, (void *)data);
-//	g_application_quit(G_APPLICATION(data));
 	return G_SOURCE_CONTINUE;
 }
 
@@ -246,7 +244,6 @@ handle_sigwinch(gpointer data)
 {
 	gchar *fn = "handle_sigwinch()";
 	g_print("%s - data at: %p\n", fn, (void *)data);
-//	g_application_quit(G_APPLICATION(data));
 	return G_SOURCE_CONTINUE;
 }
 
@@ -265,7 +262,8 @@ main(int argc, char **argv)
 //		G_APPLICATION_HANDLES_COMMAND_LINE);
 
 //	LxtermcApp *app = lxtermc_app_new("= main app =");
-	LxtermcApp *app = lxtermc_app_new();
+//	LxtermcApp *app = lxtermc_app_new();
+	GtkWidget *app = lxtermc_app_new();
 	g_print("%s - app at: %p - starting main application loop ...\n", fn, (void *)app);
 
 	g_unix_signal_add(SIGHUP, handle_sighup, app);

@@ -22,16 +22,20 @@ lxtcwin_free_at(lxtcwin_t **win)
 	g_print("%s - end\n", fn);
 }
 
-/* GFunc */
+/* GFunc - for passing to g_ptr_array_forech() */
 void lxtcwin_close(gpointer lxtcwin_ptr, gpointer data)
 {
 	gchar *fn = "lxtcwin_close()";
 	lxtcwin_t *lxwin = (lxtcwin_t *)lxtcwin_ptr;
 	g_print("%s - lxwin at: %p - data at: %p\n", fn, lxwin->id, (void *)data);
 	g_print("%s - end, passing task to gtk_window_close()\n", fn);
-	gtk_window_close(GTK_WINDOW(lxwin->win));	
+	gtk_window_close(GTK_WINDOW(lxwin->win));
 }
 
+/*
+ * GTK_WINDOW:close-request signal handler
+ * default handler is called afterwards (if return value is FALSE)
+ */
 gboolean
 lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin)
 {
@@ -40,6 +44,7 @@ lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin)
 		fn, lxwin->id, (void *)gwin, (void *)lxwin);
 
 // Before doing this, make sure terminals are in closeable state, HOW ????
+// TODO: use gtk... close tabs etc...
 	g_ptr_array_foreach(lxwin->tabs, lxtctab_detach, NULL);
 	lxtcwin_free_at(&lxwin);
 	g_print("%s - end, passing task to GtkWindow\n", fn);
@@ -63,7 +68,7 @@ lxtcwin_new_tab(lxtcwin_t *win, const gchar *label)
 
 //	g_print("%s - calling gtk_notebook_append_page()\n", fn);
 	gtk_notebook_append_page(GTK_NOTEBOOK(win->notebook),
-		GTK_WIDGET(tab->scrollwin), tab->tab);
+		GTK_WIDGET(tab->scrollwin), tab->label);
 
 	g_free(tabstr);
 	g_print("%s - end\n", fn);
@@ -73,47 +78,49 @@ void
 lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab)
 {
 	gchar *fn = "lxtcwin_close_tab()";
-	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->tab)); 
+	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label));
 	g_print("%s - '%s' at: %p - win: '%s' at: %p\n",
 		fn, str, (void *)tab, win->id, (void *)win);
+
+	int p = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), tab->scrollwin);
+	int n = gtk_notebook_get_n_pages(GTK_NOTEBOOK(win->notebook));
+	g_print("%s - remove page: %i among %i pages\n", fn, p, n);
+
+	if (n < 1 || p < 0) {
+		g_print("%s - n: %i, p: %i - nothing to close - end\n", fn, n, p);
+		return;
+	}
+	if (n < 2) {
+		g_print("%s - n: %i, closing the window - end\n", fn, n);
+		gtk_window_close(GTK_WINDOW(win->win));
+		return;
+	}
+
 	if (!g_ptr_array_remove(win->tabs, tab)) {
 		g_print("%s - '%s' - tab pointer not found...\n", fn, str);
 	}
 	g_print("%s - '%s' at: %p, removed from win '%s' at: %p\n",
 		fn, str, (void *)tab, win->id, (void *)win);
 
-
-
-
-
-	int i = 0;
-	if ((i = gtk_notebook_get_n_pages(GTK_NOTEBOOK(win->notebook)) < 2)) {
-		gtk_window_close(GTK_WINDOW(win->win));
-		return;
-	}
-	if ((i = gtk_notebook_page_num(GTK_NOTEBOOK(win->notebook), GTK_WIDGET(tab->scrollwin)) < 0)) {
-		g_print("%s - tab not found in notebook\n", fn);
-	} else {
-		gtk_notebook_remove_page(GTK_NOTEBOOK(win->notebook), i);
-	}
+	gtk_notebook_remove_page(GTK_NOTEBOOK(win->notebook), p);
 	g_print("%s - end\n", fn);
 }
-
-static void lxtcwin_size(GtkWindow *gwin, lxtcwin_t *win)
+/*
+ * GTK_WINDOW - notify::default-[width|heigh] handler
+ */
+static void
+lxtcwin_size(lxtcwin_t *win)
 {
 	gchar *fn = "lxtcwin_size()";
-	g_print("%s\n", fn);
-//	g_print("%s - '%s' at: %p, gwin at: %p\n",
-//		fn, win->id, (void *)win, (void *)gwin);
-	if (!win->tabs || win->tabs->len < 1) return;
+	if (!win->notebook) { g_print("%s - notebook not filled yet\n", fn); return; }
+	int p = gtk_notebook_get_current_page(GTK_NOTEBOOK(win->notebook));
+	if (p < 0) { g_print("%s - no pages in window\n", fn); return; }
+	if (!win->tabs || win->tabs->len < 1) { g_print("%s - no tabs in window\n", fn); return; }
+	if ((guint)p > win->tabs->len) { g_print("%s - more pages than tabs\n", fn); return; }
 	int r, c;
 	GError *err = NULL;
-
-// TODO, need to get active tab
-
-	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, 0);
-	VtePty *pty = VTE_PTY(tab->pty);
-	if (!vte_pty_get_size(pty, &r, &c, &err) || err) {
+	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, p);
+	if (!vte_pty_get_size(tab->pty, &r, &c, &err) || err) {
 		g_print("%s - error when getting pty size\n", fn);
 		g_error_free(err);
 		return;
@@ -126,47 +133,39 @@ static void lxtcwin_size(GtkWindow *gwin, lxtcwin_t *win)
 	g_print("%s - end\n", fn);
 }
 
-static void
-lxtcwin_width(GtkWindow *gwin, gpointer unknown, lxtcwin_t *win)
-{
-	gchar *fn = "lxtcwin_width()";
-	g_print("%s\n", fn);
-//	g_print("%s - gwin: %p - unknown: %p - lxtcwin: %p\n",
-//		fn, (void *)gwin, (void *)unknown, (void *)win);
-	lxtcwin_size(gwin, win);
-	g_print("%s - end\n", fn);
-}
-
-static void
-lxtcwin_height(GtkWindow *gwin, gpointer unknown, lxtcwin_t *win)
-{
-	gchar *fn = "lxtcwin_height()";
-	g_print("%s\n", fn);
-//	g_print("%s - gwin: %p - unknown: %p - lxtcwin: %p\n",
-//		fn, (void *)gwin, (void *)unknown, (void *)win);
-	lxtcwin_size(gwin, win);
-	g_print("%s - end\n", fn);
-}
-
+/*
+ * GTK_NOTEBOOK:switch-page signal handler
+ * default handler is called afterwards
+ */
 static void
 lxtcwin_tab_switched(GtkNotebook *nb, GtkWidget *wid, guint num, lxtcwin_t *win)
 {
 	gchar *fn = "lxtcwin_tab_switched()";
-	int page = gtk_notebook_get_current_page(nb);
-	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, page);
+//	int page = gtk_notebook_get_current_page(nb);
+	if (gtk_notebook_get_n_pages(nb) < 1) { g_print("%s - to nothing\n", fn); return; }
 
+	g_print("%s - wid: %p, num: %i, win: %p\n",
+		fn, (void *)wid, num, (void *)win);
 
+	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, num);
 
+	if (tab->scrollwin != wid) {
+		g_print("%s - notebook child mismatch, why? scrollwin: %p, wid: %p\n",
+			fn, (void *)tab->scrollwin, (void *)wid);
+		return;
+	}
 
+	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label));
 
-//	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->tab)); 
-	g_print("%s - nb at: %p, wid at: %p, num: %u (%u), win at: %p\n",
-		fn, (void *)nb, (void *)wid, num, win->tabs->len, (void *)win);
-//	g_print("%s - new tab '%s', nb at: %p, wid at: %p, num: %u, win at: %p\n",
-//		fn, str, (void *)nb, (void *)wid, num, (void *)win);
+	g_print("%s - switched to tab '%s'\n", fn, str);
 
-// TODO: track visible_tab
+	// this does not work, probably because of default handler called afterwards...
+//	if (!gtk_widget_grab_focus(GTK_WIDGET(tab->vte))) {
+//		g_print("%s - vte failed to grab focus\n", fn);
+//	}
+
 	g_print("%s - end\n", fn);
+	// default handler called after this registered handler
 }
 
 lxtcwin_t *
@@ -187,11 +186,7 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		fn, (void *)win, (void *)win->win);
 
 	g_signal_connect(GTK_WINDOW(win->win),
-		"close-request", G_CALLBACK(lxtcwin_close_request), win);
-	g_signal_connect(GTK_WINDOW(win->win),
-		"notify::default-width", G_CALLBACK(lxtcwin_width), win);
-	g_signal_connect(GTK_WINDOW(win->win),
-		"notify::default-height", G_CALLBACK(lxtcwin_height), win);
+			"close-request", G_CALLBACK(lxtcwin_close_request), win);
 
 	gtk_window_set_title(GTK_WINDOW(win->win),
 		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
@@ -219,12 +214,20 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		lxtcwin_new_tab(win, NULL);
 	}
 
-	gtk_window_set_child(GTK_WINDOW(win->win), GTK_WIDGET(win->notebook));
+//	gtk_window_set_child(GTK_WINDOW(win->win), GTK_WIDGET(win->notebook));
+//	gtk_window_set_child(win->win, win->notebook);
+	gtk_window_set_child(GTK_WINDOW(win->win), win->notebook);
+	g_signal_connect_swapped(GTK_WINDOW(win->win),
+		"notify::default-width", G_CALLBACK(lxtcwin_size), win);
+	g_signal_connect_swapped(GTK_WINDOW(win->win),
+		"notify::default-height", G_CALLBACK(lxtcwin_size), win);
 
 	int page = gtk_notebook_get_current_page(GTK_NOTEBOOK(win->notebook));
 	win->visible_tab = g_ptr_array_index(win->tabs, page);
-	const gchar *str = gtk_label_get_text(GTK_LABEL(win->visible_tab->tab)); 
-
+	const gchar *str = gtk_label_get_text(GTK_LABEL(win->visible_tab->label));
+	if (!gtk_widget_grab_focus(GTK_WIDGET(win->visible_tab->vte))) {
+		g_print("%s - vte failed to grab focus\n", fn);
+	}
 	g_print("%s - current page is '%s' : %i\n", fn, str, page);
 	return win;
 }
