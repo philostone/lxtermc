@@ -109,7 +109,7 @@ lxtermc_app_cmdline(GApplication *app, GApplicationCommandLine *cmdline)
 
 	if (lxapp->cmdargs) {
 		g_print("%s - cmdargs needs freeing - why???\n", fn);
-		lxtermc_free_cmdargs_at(&(lxapp->cmdargs));
+		lxtermc_cmdargs_free(lxapp->cmdargs);
 	}
 	lxapp->cmdargs = g_new0(cmdargs_t, 1);
 	if (lxtermc_args(argc, argv, lxapp->cmdargs) != TRUE) {
@@ -172,10 +172,10 @@ lxtermc_app_finalize(GObject *obj)
 	// maybe allocated
 	if (lxapp->cmdargs) {
 		g_print("%s - cmdargs needs freeing - why???\n", fn);
-		lxtermc_free_cmdargs_at(&(lxapp->cmdargs));
+		lxtermc_cmdargs_free(lxapp->cmdargs);
 	}
 	g_print("%s - freeing lxwins array of %i ptrs\n", fn, lxapp->lxtcwins->len);
-	g_ptr_array_free(lxapp->lxtcwins, TRUE);
+	g_ptr_array_free(lxapp->lxtcwins, TRUE);	// calls lxtcwin_free()
 
 	g_print("%s - end, handing over to parent...\n", fn);
 	G_OBJECT_CLASS(lxtermc_app_parent_class)->finalize(obj);
@@ -238,11 +238,10 @@ lxtermc_app_init(LxtermcApp *app)
 	g_print("%s - app at: %p\n", fn, (void *)app);
 
 	// initializations
-	app->lxtcwins = g_ptr_array_new();
+	app->lxtcwins = g_ptr_array_new_with_free_func(lxtcwin_free);
 	g_print("%s - end\n", fn);
 }
 
-//LxtermcApp *
 GtkWidget *
 lxtermc_app_new()
 {

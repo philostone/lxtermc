@@ -173,11 +173,11 @@ lxtermc_free_str_at(char **ptr)
 }
 
 void
-lxtermc_free_cmdargs_at(cmdargs_t **cargs)
+lxtermc_cmdargs_free(cmdargs_t *cargs)
 {
-	char *fn = "lxtermc_clear_cmdargs()";
+	char *fn = "lxtermc_cmdargs_free()";
 	g_print("%s - start!\n", fn);
-	if (!cargs || !(*cargs)) {
+	if (!cargs) {
 		g_print("%s - NULL pointer, nothing is freed...\n", fn);
 		return;
 	}
@@ -185,15 +185,15 @@ lxtermc_free_cmdargs_at(cmdargs_t **cargs)
 	// *cargs is pointer to cmdargs_t struct
 	// (*cargs)->exe is pointer to char
 	// &((*cargs)->exe) is pointer to the pointer to the char
-	lxtermc_free_str_at(&((*cargs)->exec));
-	lxtermc_free_str_at(&((*cargs)->cfg));
-	lxtermc_free_str_at(&((*cargs)->title));
-	lxtermc_free_str_at(&((*cargs)->tabs));
+	lxtermc_free_str_at(&cargs->exec);
+	lxtermc_free_str_at(&cargs->cfg);
+	lxtermc_free_str_at(&cargs->title);
+	lxtermc_free_str_at(&cargs->tabs);
 
 ////	g_ptr_array_foreach((*cargs)->tabs, lxtc_gfunc_free, NULL);
 //	g_ptr_array_free((*cargs)->tabs, TRUE);
-	lxtermc_free_str_at(&((*cargs)->locale));
-	*cargs = NULL;
+	lxtermc_free_str_at(&cargs->locale);
+//	*cargs = NULL;
 }
 
 static gint

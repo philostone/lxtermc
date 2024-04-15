@@ -73,16 +73,13 @@ colorset_t color_sets[] = {
 #define NUM_COLOR_SETS 7
 
 void
-lxtccfg_free_at(lxtccfg_t **cfg)
+lxtccfg_free(lxtccfg_t *cfg)
 {
-	gchar *fn = "lxtxxfg_free()";
+	gchar *fn = "lxtccfg_free()";
 	g_print("%s\n", fn);
-
-	g_key_file_free((*cfg)->keyfile);
-//	g_free((*cfg)->config);
-	g_free((*cfg)->tab_pos);
-	g_free(*cfg);
-	*cfg = NULL;
+	g_key_file_free(cfg->keyfile);
+	g_free(cfg->tab_pos);
+	g_free(cfg);
 }
 
 /*

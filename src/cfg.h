@@ -118,7 +118,7 @@ typedef struct _colorset {
 extern colorset_t color_presets[];
 
 lxtccfg_t *lxtccfg_load(char *fname);
-void lxtccfg_free_at(lxtccfg_t **cfg);
+void lxtccfg_free(lxtccfg_t *cfg);
 
 G_END_DECLS
 

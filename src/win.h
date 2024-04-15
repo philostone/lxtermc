@@ -25,13 +25,14 @@ typedef struct _lxtcwin {
 } lxtcwin_t;
 
 lxtcwin_t *lxtcwin_new(LxtermcApp *app, const gchar *id);
-void lxtcwin_free_at(lxtcwin_t **win);
-
-/* GFunc */
-void lxtcwin_close(gpointer win, gpointer data);
-
 gboolean lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin);
 void lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab);
+
+/* GDestroyNotify signature, *win is is of type (lxtcwin_t *) */
+void lxtcwin_free(void *win);
+
+/* GFunc signature */
+void lxtcwin_close(gpointer win, gpointer data);
 
 G_END_DECLS
 

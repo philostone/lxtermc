@@ -18,9 +18,12 @@ typedef struct _lxtctab {
 } lxtctab_t;
 
 lxtctab_t *lxtctab_new(lxtcwin_t *win, gchar *title);
-void lxtctab_close(lxtctab_t *tab);
+//void lxtctab_close(lxtctab_t *tab);
 
-/* GFunc*/
+/* GDestroyNotify signature, *tab is of (lxtctab_t *) */
+void lxtctab_free(void *tab);
+
+/* GFunc signature */
 void lxtctab_detach(gpointer tab, gpointer data);
 
 G_END_DECLS

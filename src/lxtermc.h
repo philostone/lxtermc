@@ -19,7 +19,7 @@ typedef struct _lxtctab lxtctab_t;
 #include "app.h"
 #include "win.h"
 #include "tab.h"
-#include "vte.h"
+//#include "vte.h"
 
 #define LXTERMC_APP_ID				"com.github.philostone.lxtermc"
 #define LXTERMC_NAME				"lxtermc"
@@ -105,7 +105,7 @@ typedef struct _cmdargs {
 extern gchar lxtermc_usage[];
 int lxtermc_args(int argc, char **argv, cmdargs_t *cargs);
 void lxtermc_free_str_at(char **ptr);
-void lxtermc_free_cmdargs_at(cmdargs_t **cargs);
+void lxtermc_cmdargs_free(cmdargs_t *cargs);
 
 G_END_DECLS
 

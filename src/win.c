@@ -10,19 +10,23 @@
 
 #include "lxtermc.h"		// all components are included here
 
+/* GDestroyNotify signature, *win is of type (lxtcwin_t *) */
 void
-lxtcwin_free_at(lxtcwin_t **win)
+lxtcwin_free(void *win)
 {
-	gchar *fn = "lxtcwin_clear()";
-	g_print("%s - '%s' - at: %p\n", fn, (*win)->id, (void *)*win);
-	g_free((*win)->id);
-	lxtermc_free_cmdargs_at(&(*win)->cmdargs);
-	lxtccfg_free_at(&(*win)->cfg);
-	*win = NULL;
+	gchar *fn = "lxtcwin_free()";
+	lxtcwin_t *w = (lxtcwin_t *)win;
+	g_print("%s - '%s' - at: %p\n", fn, w->id, (void *)win);
+	g_free(w->id);
+	lxtermc_cmdargs_free(w->cmdargs);
+	lxtccfg_free(w->cfg);
+
+	// TODO: free tabs (array) ?????
+//	*win = NULL;
 	g_print("%s - end\n", fn);
 }
 
-/* GFunc - for passing to g_ptr_array_forech() */
+/* GFunc signature - for passing to g_ptr_array_forech() */
 void lxtcwin_close(gpointer lxtcwin_ptr, gpointer data)
 {
 	gchar *fn = "lxtcwin_close()";
@@ -46,7 +50,7 @@ lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin)
 // Before doing this, make sure terminals are in closeable state, HOW ????
 // TODO: use gtk... close tabs etc...
 	g_ptr_array_foreach(lxwin->tabs, lxtctab_detach, NULL);
-	lxtcwin_free_at(&lxwin);
+	lxtcwin_free(lxwin);
 	g_print("%s - end, passing task to GtkWindow\n", fn);
 	return FALSE; // let GtkWindow handle the rest ...
 }
@@ -194,7 +198,7 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
 
 	win->notebook = gtk_notebook_new();
-	win->tabs = g_ptr_array_new();
+	win->tabs = g_ptr_array_new_with_free_func(lxtctab_free);
 	g_print("%s - tabs at: %p\n", fn, (void *)win->tabs);
 
 	g_signal_connect(GTK_NOTEBOOK(win->notebook),

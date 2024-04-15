@@ -9,18 +9,20 @@
 
 #include "lxtermc.h"		// all lxtermc components are included here
 
+/* GDestroyNotify signature, *tab is of type (lxtctab_t *) */
 void
-lxtctab_free_at(lxtctab_t **tab)
+lxtctab_free(void *tab)
 {
-	gchar *fn = "lxtctab_free_at()";
-	const gchar *str = gtk_label_get_text(GTK_LABEL((*tab)->label));
+	gchar *fn = "lxtctab_free()";
+	lxtctab_t *t = (lxtctab_t *)tab;
+	const gchar *str = gtk_label_get_text(GTK_LABEL(t->label));
 	g_print("%s  '%s' - start!\n", fn, str);
 //	g_print("%s  '%s' - start!\n", fn, gtk_label_get_text(GTK_LABEL((*tab)->tab)));
 //	g_object_unref((*tab)->tab);
 //	g_object_unref((*tab)->scrollwin);
 //	g_object_unref((*tab)->vte);
-	g_free(*tab);
-	*tab = NULL;
+	g_free(t);
+//	*tab = NULL;
 	g_print("%s - end\n", fn);
 }
 
@@ -45,7 +47,7 @@ void lxtctab_detach(gpointer tab, gpointer data)
 	lxtctab->win = NULL;
 	g_print("%s - end\n", fn);
 }
-
+/*
 void lxtctab_close(lxtctab_t *tab)
 {
 	gchar *fn = "lxtctab_close()";
@@ -56,7 +58,7 @@ void lxtctab_close(lxtctab_t *tab)
 	lxtctab_free_at(&tab);
 	g_print("%s - end\n", fn);
 }
-
+*/
 static const gchar *
 lxtctab_preferred_shell()
 {
@@ -107,6 +109,18 @@ lxtctab_hide(GtkWidget *wid, gpointer *unknown, gpointer *tab)
 }
 */
 
+static void
+lxtctab_child_exited(VteTerminal *vte, int status, gpointer data)
+{
+	gchar *fn ="lxtctab_child_exited()";
+	lxtctab_t *tab = (lxtctab_t *)data;
+	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label));
+	g_print("%s - '%s' ...\n", fn, str);
+//	lxtctab_close(tab);
+	lxtcwin_close_tab(tab->win, tab);
+	g_print("%s - '%s' end\n", fn, str);
+}
+
 lxtctab_t *
 lxtctab_new(lxtcwin_t *win, gchar *title)
 {
@@ -117,7 +131,8 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 	tab->win = win;
 	tab->scrollwin = gtk_scrolled_window_new();
 	tab->label = gtk_label_new(title);
-	tab->vte = lxtermc_vte_new(tab);
+	tab->vte = vte_terminal_new();
+//	tab->vte = lxtermc_vte_new(tab);
 
 //	g_signal_connect(GTK_WIDGET(tab->scrollwin),
 //		"destroy", G_CALLBACK(lxtctab_destroy), tab);
@@ -128,6 +143,9 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 	// set up terminal properties
 	vte_terminal_set_size(VTE_TERMINAL(tab->vte), 20, 20);
 	vte_terminal_set_scrollback_lines(VTE_TERMINAL(tab->vte), 100);
+
+	g_signal_connect(VTE_TERMINAL(tab->vte), "child-exited",
+		G_CALLBACK(lxtctab_child_exited), tab);
 
 	// construct main widget
 	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(tab->scrollwin), tab->vte);
