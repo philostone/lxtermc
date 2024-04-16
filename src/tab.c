@@ -15,50 +15,48 @@ lxtctab_free(void *tab)
 {
 	gchar *fn = "lxtctab_free()";
 	lxtctab_t *t = (lxtctab_t *)tab;
-	const gchar *str = gtk_label_get_text(GTK_LABEL(t->label));
+	const gchar *str = gtk_label_get_text(t->label);
 	g_print("%s  '%s' - start!\n", fn, str);
-//	g_print("%s  '%s' - start!\n", fn, gtk_label_get_text(GTK_LABEL((*tab)->tab)));
-//	g_object_unref((*tab)->tab);
-//	g_object_unref((*tab)->scrollwin);
-//	g_object_unref((*tab)->vte);
 	g_free(t);
-//	*tab = NULL;
 	g_print("%s - end\n", fn);
 }
-
-/*
-void
-lxtctab_destroy(GtkWidget *gwid, lxtctab_t *tab)
-{
-	char *fn = "lxtctab_destroy()";
-	g_print("%s - '%s' - gwid at: %p - lxtab at: %p\n",
-		fn, gtk_label_get_text(GTK_LABEL(tab->tab)), (void *)gwid, (void *)tab);
-	lxtctab_clear(&tab);
-}
-*/
 
 /* GFunc - for passing to g_ptr_array_foreach() */
-void lxtctab_detach(gpointer tab, gpointer data)
-{
-	gchar *fn = "lxtctab_detach()";
-	lxtctab_t *lxtctab = (lxtctab_t *)tab;
-	const gchar *str = gtk_label_get_text(GTK_LABEL(lxtctab->label));
-	g_print("%s - '%s' - at: %p - data at:%p\n", fn, str, (void *)lxtctab, (void *)data);
-	lxtctab->win = NULL;
-	g_print("%s - end\n", fn);
-}
-/*
-void lxtctab_close(lxtctab_t *tab)
+void lxtctab_close(gpointer tab, gpointer data)
 {
 	gchar *fn = "lxtctab_close()";
-	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label)); 
-	g_print("%s - '%s' - at: %p\n", fn, str, (void *)tab);
-	if (tab->win) lxtcwin_close_tab(tab->win, tab);
-	else g_print("%s - tag '%s' has no win, how come?\n", fn, str);
-	lxtctab_free_at(&tab);
+	lxtctab_t *t = (lxtctab_t *)tab;
+	lxtcwin_t *w = t->win;
+	const gchar *str = gtk_label_get_text(t->label);
+	if (!w) { g_print("%s - '%s' already closed - end\n", fn, str); return; }
+	g_print("%s - '%s' - at: %p - data at:%p\n", fn, str, (void *)t, (void *)data);
+	t->win = NULL;
+	lxtcwin_close_tab(w, t);
 	g_print("%s - end\n", fn);
 }
-*/
+
+static void
+lxtctab_child_exited(VteTerminal *vte, int status, gpointer data)
+{
+	gchar *fn ="lxtctab_child_exited()";
+	lxtctab_t *tab = (lxtctab_t *)data;
+	const gchar *str = gtk_label_get_text(tab->label);
+	if (!tab->win) { g_print("%s - '%s' already closed - end\n", fn, str); return; }
+	g_print("%s - '%s', vte at: %p, status: %i\n", fn, str, (void *)vte, status);
+	lxtctab_close(tab, NULL);
+	g_print("%s - '%s' end\n", fn, str);
+}
+
+static void
+lxtctab_selection_changed(VteTerminal *vte, gpointer data)
+{
+	gchar *fn ="lxtctab_selection_changed()";
+	lxtctab_t *tab = (lxtctab_t *)data;
+	const gchar *str = gtk_label_get_text(tab->label);
+	g_print("%s - '%s', vte at: %p\n", fn, str, (void *)vte);
+	g_print("%s - '%s' end\n", fn, str);
+}
+
 static const gchar *
 lxtctab_preferred_shell()
 {
@@ -80,14 +78,14 @@ lxtctab_spawn_async_callback(VteTerminal *vte, GPid pid, GError *error, void *ta
 {
 	char *fn = "lxtctab_spawn_async_callback()";
 	lxtctab_t *tab = (lxtctab_t *)tab_data;
-	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label)); 
+	const gchar *str = gtk_label_get_text(tab->label); 
 	g_print("%s - vte at: %p - pid: %i - error: %p, tab_data: %p\n",
 		fn, (void *)vte, pid, (void *)error, (void *)tab_data);
 	g_print("%s - start!\n", fn);
 	g_print("%s - vte  at: %p\n", fn, (void *)vte);
 	g_print("%s - tab  at: %p - '%s'\n", fn, (void *)tab, str);
 	g_print("%s - pty pid: %i\n", fn, pid);
-	tab->pty = vte_terminal_get_pty(VTE_TERMINAL((tab)->vte));
+	tab->pty = vte_terminal_get_pty(tab->vte);
 	g_print("%s - pty  at: %p\n", fn, (void *)tab->pty);
 	g_print("%s - end\n", fn);
 }
@@ -109,18 +107,6 @@ lxtctab_hide(GtkWidget *wid, gpointer *unknown, gpointer *tab)
 }
 */
 
-static void
-lxtctab_child_exited(VteTerminal *vte, int status, gpointer data)
-{
-	gchar *fn ="lxtctab_child_exited()";
-	lxtctab_t *tab = (lxtctab_t *)data;
-	const gchar *str = gtk_label_get_text(GTK_LABEL(tab->label));
-	g_print("%s - '%s' ...\n", fn, str);
-//	lxtctab_close(tab);
-	lxtcwin_close_tab(tab->win, tab);
-	g_print("%s - '%s' end\n", fn, str);
-}
-
 lxtctab_t *
 lxtctab_new(lxtcwin_t *win, gchar *title)
 {
@@ -129,28 +115,28 @@ lxtctab_new(lxtcwin_t *win, gchar *title)
 
 	lxtctab_t *tab = g_new0(lxtctab_t, 1);
 	tab->win = win;
-	tab->scrollwin = gtk_scrolled_window_new();
-	tab->label = gtk_label_new(title);
-	tab->vte = vte_terminal_new();
-//	tab->vte = lxtermc_vte_new(tab);
-
-//	g_signal_connect(GTK_WIDGET(tab->scrollwin),
-//		"destroy", G_CALLBACK(lxtctab_destroy), tab);
+	tab->scrollwin = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new());
+	tab->label = GTK_LABEL(gtk_label_new(title));
+	tab->vte = VTE_TERMINAL(vte_terminal_new());
 
 //	g_signal_connect(GTK_WIDGET(tab->vte), "show", G_CALLBACK(lxtctab_show), tab);
 //	g_signal_connect(GTK_WIDGET(tab->vte), "hide", G_CALLBACK(lxtctab_hide), tab);
 
 	// set up terminal properties
-	vte_terminal_set_size(VTE_TERMINAL(tab->vte), 20, 20);
-	vte_terminal_set_scrollback_lines(VTE_TERMINAL(tab->vte), 100);
+	vte_terminal_set_size(tab->vte, 20, 20);
+	vte_terminal_set_scrollback_lines(tab->vte, 100);
 
-	g_signal_connect(VTE_TERMINAL(tab->vte), "child-exited",
+	g_signal_connect(tab->vte, "child-exited",
 		G_CALLBACK(lxtctab_child_exited), tab);
+	g_signal_connect(tab->vte, "selection-changed",
+		G_CALLBACK(lxtctab_selection_changed), tab);
+
+// eof signal comes after child-exited, making it useless ???
+//	g_signal_connect(tab->vte, "eof", G_CALLBACK(lxtctab_eof), tab);
 
 	// construct main widget
-	gtk_scrolled_window_set_child(GTK_SCROLLED_WINDOW(tab->scrollwin), tab->vte);
-	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(tab->scrollwin),
-		GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+	gtk_scrolled_window_set_child(tab->scrollwin, GTK_WIDGET(tab->vte));
+	gtk_scrolled_window_set_policy(tab->scrollwin, GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
 
 	gchar **exec = g_malloc(3*sizeof(gchar *));
 	exec[0] = g_strdup(lxtctab_preferred_shell());

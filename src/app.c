@@ -51,6 +51,15 @@ close_activated(GSimpleAction *act, GVariant *param, gpointer data)
 }
 
 static void
+prefs_activated(GSimpleAction *act, GVariant *param, gpointer data)
+{
+	char *fn = "prefs_activated()";
+	g_print("%s - '%s' is activated - param: %p - data: %p\n",
+		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
+	g_print("%s - end\n", fn);
+}
+
+static void
 lxtermc_app_activate(GApplication *app)
 {
 	G_APPLICATION_CLASS(lxtermc_app_parent_class)->activate(app);
@@ -69,7 +78,8 @@ lxtermc_app_activate(GApplication *app)
 
 	// map menu actions to window
 	const GActionEntry win_entries[] = {
-		{"close", close_activated, NULL, NULL, NULL, {0}} // last field: gsize padding[3];
+		{"close", close_activated, NULL, NULL, NULL, {0}}, // last field: gsize padding[3];
+		{"prefs", prefs_activated, NULL, NULL, NULL, {0}} // last field: gsize padding[3];
 	};
 	g_action_map_add_action_entries(G_ACTION_MAP(lxtcwin->win),
 		win_entries, G_N_ELEMENTS(win_entries), lxtcwin->win);
@@ -89,7 +99,7 @@ lxtermc_app_shutdown(GApplication *app)
 	g_print("%s - app at: %p\n", fn, (void *)app);
 
 // clean up
-	g_ptr_array_foreach(LXTERMC_APP(app)->lxtcwins, lxtcwin_close, NULL);
+//	g_ptr_array_foreach(LXTERMC_APP(app)->lxtcwins, lxtcwin_close, NULL);
 	G_APPLICATION_CLASS(lxtermc_app_parent_class)->shutdown(app);
 	g_print("%s - end\n", fn);
 }
@@ -182,14 +192,6 @@ lxtermc_app_finalize(GObject *obj)
 }
 
 static void
-prefs_activated(GSimpleAction *act, GVariant *param, gpointer data)
-{
-	char *fn = "prefs_activated()";
-	g_print("%s - '%s' is activated - param: %p - data: %p\n",
-		fn, g_action_get_name(G_ACTION(act)), (void *)param, (void *)data);
-	g_print("%s - end\n", fn);
-}
-static void
 lxtermc_app_startup(GApplication *app)
 {
 	gchar *fn = "lxtermc_app_startup()";
@@ -204,11 +206,12 @@ lxtermc_app_startup(GApplication *app)
 	gtk_application_set_menubar(GTK_APPLICATION(app), menubar);
 	g_object_unref(menubar);
 
-	const GActionEntry app_entries[] = {
+/*	const GActionEntry app_entries[] = {
 		{"prefs", prefs_activated, NULL, NULL, NULL, {0}} // last field: gsize padding[3];
 	};
 	g_action_map_add_action_entries(G_ACTION_MAP(app),
 		app_entries, G_N_ELEMENTS(app_entries), app);
+*/
 	g_print("%s - end\n", fn);
 }
 

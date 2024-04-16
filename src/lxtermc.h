@@ -84,7 +84,7 @@ typedef struct _lxtctab lxtctab_t;
 #define LXTERMC_FALLBACK_SHELL			"/bin/sh"
 
 // provided by meson.build
-//#define LXTERMC_VERSION "0.0.1"
+//#define LXTERMC_VERSION
 //#define LXTERMC_DATA_DIR
 
 // TODO: change this to rows and cols
@@ -92,14 +92,12 @@ typedef struct _lxtctab lxtctab_t;
 #define LXTERMC_DEFAULT_HEIGHT 200
 
 typedef struct _cmdargs {
-//	char *cmd;		// -> argv[0], not used
 	char *exec;		// copy of data from -e, --command
 	char *cfg;		// copy of -c argument
 	gboolean cfg_ro;	// treat provided config as read only
 	char *title;		// copy of -t argument
 	char *tabs;		// comma separated list of tab titles
 	char *locale;		// copy of locale id, to use instead of user locale
-//	GtkWindow *win;		// -> to the top level window that the arguments regard
 } cmdargs_t;
 
 extern gchar lxtermc_usage[];

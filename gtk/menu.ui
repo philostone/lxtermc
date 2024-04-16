@@ -13,7 +13,7 @@
       <attribute name="label" translatable="yes">Edit</attribute>
       <item>
         <attribute name="label" translatable="yes">Preferences</attribute>
-        <attribute name="action">app.prefs</attribute>
+        <attribute name="action">win.prefs</attribute>
       </item>
     </submenu>
   </menu>

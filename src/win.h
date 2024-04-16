@@ -10,18 +10,18 @@ G_BEGIN_DECLS
 /* top level terminal window */
 
 typedef struct _lxtcwin {
-	LxtermcApp	*app;		// main application instance
-	gchar		*id;
-	cmdargs_t 	*cmdargs;	// ownership stealed from app
-	lxtccfg_t	*cfg;		// preferences for this window
+	LxtermcApp		*app;		// main application instance
+	gchar			*id;		// win id string
+	cmdargs_t 		*cmdargs;	// ownership stealed from app
+	lxtccfg_t		*cfg;		// preferences for this window
 
 	// window components
-	GtkWidget	*win;		// main window
-	GtkWidget	*notebook;	// window child
-	GPtrArray	*tabs;		// lxtctab_t pointers
-	lxtctab_t	*visible_tab;
-	int rows;			// vte pty number of rows
-	int cols;			// vte pty number of cols
+	GtkApplicationWindow	*win;		// top level window
+	GtkNotebook		*notebook;	// window child (GtkNotebook)
+	GPtrArray		*tabs;		// lxtctab_t pointers
+	lxtctab_t		*visible_tab;
+	int rows;				// vte pty number of rows
+	int cols;				// vte pty number of cols
 } lxtcwin_t;
 
 lxtcwin_t *lxtcwin_new(LxtermcApp *app, const gchar *id);

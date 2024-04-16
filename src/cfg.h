@@ -54,11 +54,10 @@ G_BEGIN_DECLS
 #define DISABLE_ALT		"disable_alt"
 #define DISABLE_CONFIRM		"disable_confirm"
 
-/* config default values in lxtermc.h */
+/* config default values defined in lxtermc.h */
 
 typedef struct _cfg {
 	GKeyFile *keyfile;
-//	gchar *config;
 	const char *preset_color;
 	GdkRGBA palette[16];
 	GdkRGBA bg_color;

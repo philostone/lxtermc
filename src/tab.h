@@ -10,11 +10,11 @@ G_BEGIN_DECLS
 /* one terminal tab */
 
 typedef struct _lxtctab {
-	lxtcwin_t	*win;		// back ref to win struct
-	GtkWidget	*scrollwin;	// child of GtkNotebook
-	GtkWidget	*label;
-	GtkWidget	*vte;
-	VtePty		*pty;
+	lxtcwin_t		*win;		// back ref to win struct
+	GtkScrolledWindow	*scrollwin;	// child of GtkNotebook
+	GtkLabel		*label;
+	VteTerminal		*vte;
+	VtePty			*pty;
 } lxtctab_t;
 
 lxtctab_t *lxtctab_new(lxtcwin_t *win, gchar *title);
@@ -24,7 +24,7 @@ lxtctab_t *lxtctab_new(lxtcwin_t *win, gchar *title);
 void lxtctab_free(void *tab);
 
 /* GFunc signature */
-void lxtctab_detach(gpointer tab, gpointer data);
+void lxtctab_close(gpointer tab, gpointer data);
 
 G_END_DECLS
 
