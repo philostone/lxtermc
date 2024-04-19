@@ -105,23 +105,20 @@ lxtcwin_size(lxtcwin_t *win)
 	gchar *fn = "lxtcwin_size()";
 	if (!win->notebook) { g_print("%s - notebook not filled yet\n", fn); return; }
 	int p = gtk_notebook_get_current_page(win->notebook);
-	if (p < 0) { g_print("%s - no pages in window\n", fn); return; }
+	if (p < 0) { g_print("%s - no pages in notebook\n", fn); return; }
 	if (!win->tabs || win->tabs->len < 1) { g_print("%s - no tabs in window\n", fn); return; }
 	if ((guint)p > win->tabs->len) { g_print("%s - more pages than tabs\n", fn); return; }
-	int r, c;
-	GError *err = NULL;
 	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, p);
-	if (!vte_pty_get_size(tab->pty, &r, &c, &err) || err) {
-		g_print("%s - error when getting pty size\n", fn);
-		g_error_free(err);
-		return;
+
+	int rows = vte_terminal_get_row_count(tab->vte);
+	int cols = vte_terminal_get_column_count(tab->vte);
+	if (win->rows != rows || win->cols != cols) {
+		g_print("%s - new pty size, %i x %i - end\n", fn, rows, cols);
+		win->rows = rows;
+		win->cols = cols;
+	} else {
+		g_print("%s - end\n", fn);
 	}
-	if (win->rows != r || win->cols != c) {
-		g_print("%s - new pty size, %i x %i\n", fn, r, c);
-		win->rows = r;
-		win->cols = c;
-	}
-	g_print("%s - end\n", fn);
 }
 
 /*
@@ -163,31 +160,28 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 	gchar *fn = "lxtcwin_new()";
 	g_print("%s - '%s' - app at: %p\n", fn, id, (void *)app);
 
+	/* lxtcwin_t initializations */
 	lxtcwin_t *win = g_new0(lxtcwin_t, 1);
 	win->app = app;
 	win->id = g_strdup(id);
 	win->cmdargs = lxtcapp_steal_cmdargs(app);
 	win->cfg = lxtccfg_load(win->cmdargs->cfg);
 	win->win = GTK_APPLICATION_WINDOW(gtk_application_window_new(GTK_APPLICATION(app)));
+	win->display = gdk_display_get_default();
+	win->provider = gtk_css_provider_new();
 	win->rows = 0;
 	win->cols = 0;
 	g_print("%s - new lxtcwin_t struct at: %p - gtkappwin at: %p\n",
 		fn, (void *)win, (void *)win->win);
 
-	g_signal_connect(GTK_WINDOW(win->win),
-			"close-request", G_CALLBACK(lxtcwin_close_request), win);
-
-	gtk_window_set_title(GTK_WINDOW(win->win),
-		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
-	gtk_window_set_default_size(GTK_WINDOW(win->win),
-		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
-
+	/* GtkNotebook initialization */
 	win->notebook = GTK_NOTEBOOK(gtk_notebook_new());
-	win->tabs = g_ptr_array_new_with_free_func(lxtctab_free);
-	g_print("%s - tabs at: %p\n", fn, (void *)win->tabs);
-
+	gtk_notebook_set_group_name(win->notebook, LXTERMC_NAME);
 	g_signal_connect(win->notebook, "switch-page", G_CALLBACK(lxtcwin_tab_switched), win);
 
+	/* GptArray of (lxtctab_t *) initialization */
+	win->tabs = g_ptr_array_new_with_free_func(lxtctab_free);
+	g_print("%s - tabs at: %p\n", fn, (void *)win->tabs);
 	if (win->cmdargs->tabs) {
 		char *tabs = g_strdup(win->cmdargs->tabs);
 		char *at = tabs;
@@ -202,12 +196,20 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		lxtcwin_new_tab(win, NULL);
 	}
 
+	/* GtkWindow initialization */
 	gtk_window_set_child(GTK_WINDOW(win->win), GTK_WIDGET(win->notebook));
-	g_signal_connect_swapped(GTK_WINDOW(win->win),
-		"notify::default-width", G_CALLBACK(lxtcwin_size), win);
-	g_signal_connect_swapped(GTK_WINDOW(win->win),
-		"notify::default-height", G_CALLBACK(lxtcwin_size), win);
+	gtk_window_set_title(GTK_WINDOW(win->win),
+		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
+	gtk_window_set_default_size(GTK_WINDOW(win->win),
+		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
+	g_signal_connect(GTK_WINDOW(win->win), "close-request",
+		G_CALLBACK(lxtcwin_close_request), win);
+	g_signal_connect_swapped(GTK_WINDOW(win->win), "notify::default-width",
+		G_CALLBACK(lxtcwin_size), win);
+	g_signal_connect_swapped(GTK_WINDOW(win->win), "notify::default-height",
+		G_CALLBACK(lxtcwin_size), win);
 
+	/* final initializations */
 	int page = gtk_notebook_get_current_page(win->notebook);
 	win->visible_tab = g_ptr_array_index(win->tabs, page);
 	const gchar *str = gtk_label_get_text(win->visible_tab->label);

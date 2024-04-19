@@ -12,8 +12,8 @@ struct _LxtermcApp {
 	GtkApplication parent_instance;
 
 	// subclass instance variables
-	cmdargs_t *cmdargs;		// temporary ownership, transferred to lxtermwin instance
-	GPtrArray *lxtcwins;		// array of pointers to lxtermcwin instances	
+	cmdargs_t	*cmdargs;	// temporary ownership, transferred to lxtermwin instance
+	GPtrArray	*lxtcwins;	// array of pointers to lxtermcwin instances
 };
 
 G_DEFINE_TYPE(LxtermcApp, lxtermc_app, GTK_TYPE_APPLICATION)

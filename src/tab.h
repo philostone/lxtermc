@@ -1,4 +1,3 @@
-/**/
 
 #ifndef _LXTERMC_TAB_H_
 #define _LXTERMC_TAB_H_
