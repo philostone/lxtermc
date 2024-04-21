@@ -21,7 +21,7 @@ lxtctab_free(void *tab)
 	g_print("%s - end\n", fn);
 }
 
-/* GFunc - for passing to g_ptr_array_foreach() */
+/* GFunc signature - for passing to g_ptr_array_foreach() */
 void lxtctab_close(gpointer tab, gpointer data)
 {
 	gchar *fn = "lxtctab_close()";
