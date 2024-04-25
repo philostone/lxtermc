@@ -14,7 +14,7 @@ typedef struct _lxtcwin {
 	gchar			*id;		// win id string
 	cmdargs_t 		*cmdargs;	// ownership stealed from app
 	lxtccfg_t		*cfg;		// preferences for this window
-	GdkDisplay		*display;
+//	GdkDisplay		*display;
 	GtkCssProvider		*provider;
 
 	// window components

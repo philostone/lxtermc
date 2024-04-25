@@ -13,6 +13,7 @@ struct _LxtermcApp {
 
 	// subclass instance variables
 	cmdargs_t	*cmdargs;	// temporary ownership, transferred to lxtermwin instance
+	GdkDisplay	*display;	// default display (input and output)
 	GPtrArray	*lxtcwins;	// array of pointers to lxtermcwin instances
 };
 
@@ -241,6 +242,7 @@ lxtermc_app_init(LxtermcApp *app)
 	g_print("%s - app at: %p\n", fn, (void *)app);
 
 	// initializations
+	app->display = gdk_display_get_default();
 	app->lxtcwins = g_ptr_array_new_with_free_func(lxtcwin_free);
 	g_print("%s - end\n", fn);
 }
