@@ -14,15 +14,14 @@ typedef struct _cfg lxtccfg_t;
 typedef struct _lxtcwin lxtcwin_t;
 typedef struct _lxtctab lxtctab_t;
 
-// include all components here
+// include all component headers here
 #include "cfg.h"
 #include "app.h"
 #include "win.h"
 #include "tab.h"
-//#include "vte.h"
 
-#define LXTERMC_APP_ID				"com.github.philostone.lxtermc"
 #define LXTERMC_NAME				"lxtermc"
+#define LXTERMC_APP_ID				"com.github.philostone." LXTERMC_NAME
 #define LXTERMC_DEFAULT_LOCALE			"sv_SE.utf8"
 
 #define LXTERMC_DEFAULT_ALLOW_HYPERLINK		TRUE
