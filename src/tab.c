@@ -9,6 +9,19 @@
 
 #include "lxtermc.h"		// all lxtermc components are included here
 
+struct _LxtermcTab {
+	GtkWidget parent_instance;
+	
+	lxtcwin_t		*win;		// back ref to win struct
+	GtkScrolledWindow	*scrollwin;	// child of GtkNotebook
+	GtkLabel		*label;
+	VteTerminal		*vte;
+	VtePty			*pty;
+} lxtctab_t;
+
+
+
+
 /* GDestroyNotify signature, *tab is of type (lxtctab_t *) */
 void
 lxtctab_free(void *tab)

@@ -122,6 +122,18 @@ lxtcwin_size(lxtcwin_t *win)
 }
 
 /*
+ * GTK_WINDOW - notify::is-active handler
+ */
+static void
+lxtcwin_active(lxtcwin_t *win)
+{
+	gchar *fn = "lxtcwin_active()";
+	gboolean active = gtk_window_is_active(GTK_WINDOW(win->win));
+	g_print("%s - '%s' is active: %s\n", fn, win->id, ((active) ? "true" : "false"));
+
+}
+
+/*
  * GTK_NOTEBOOK:switch-page signal handler
  * default handler is called afterwards
  */
@@ -129,7 +141,8 @@ static void
 lxtcwin_tab_switched(GtkNotebook *nb, GtkWidget *wid, guint num, lxtcwin_t *win)
 {
 	gchar *fn = "lxtcwin_tab_switched()";
-	if (gtk_notebook_get_n_pages(nb) < 1) { g_print("%s - to nothing\n", fn); return; }
+//	if (page < 1) { g_print("%s - to nothing\n", fn); return; }
+//	if (gtk_notebook_get_n_pages(nb) < 1) { g_print("%s - to nothing\n", fn); return; }
 
 	g_print("%s - wid: %p, num: %i, win: %p\n",
 		fn, (void *)wid, num, (void *)win);
@@ -177,7 +190,8 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 	/* GtkNotebook initialization */
 	win->notebook = GTK_NOTEBOOK(gtk_notebook_new());
 	gtk_notebook_set_group_name(win->notebook, LXTERMC_NAME);
-	g_signal_connect(win->notebook, "switch-page", G_CALLBACK(lxtcwin_tab_switched), win);
+	g_signal_connect(win->notebook, "switch-page",
+		G_CALLBACK(lxtcwin_tab_switched), win);
 
 	/* GptArray of (lxtctab_t *) initialization */
 	win->tabs = g_ptr_array_new_with_free_func(lxtctab_free);
@@ -208,6 +222,8 @@ lxtcwin_new(LxtermcApp *app, const gchar *id)
 		G_CALLBACK(lxtcwin_size), win);
 	g_signal_connect_swapped(GTK_WINDOW(win->win), "notify::default-height",
 		G_CALLBACK(lxtcwin_size), win);
+	g_signal_connect_swapped(GTK_WINDOW(win->win), "notify::is-active",
+		G_CALLBACK(lxtcwin_active), win);
 
 	/* final initializations */
 	int page = gtk_notebook_get_current_page(win->notebook);
