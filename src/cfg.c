@@ -2,7 +2,8 @@
 
 #include <glib.h>
 
-#include "lxtermc.h"		// all components are included here
+#include "lxtermc.h"
+#include "cfg.h"
 
 // TODO: update to rgba
 colorset_t color_sets[] = {

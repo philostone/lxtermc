@@ -9,16 +9,20 @@
 G_BEGIN_DECLS
 
 // required to resolv circular header dependencies
-typedef struct _cmdargs cmdargs_t;
-typedef struct _cfg lxtccfg_t;
-typedef struct _lxtcwin lxtcwin_t;
-typedef struct _lxtctab lxtctab_t;
+typedef struct _LxtermcTab LxtermcTab;
+typedef struct _LxtermcWin LxtermcWin;
+typedef struct _LxtermcApp LxtermcApp;
+
+//typedef struct _cmdargs cmdargs_t;
+//typedef struct _cfg lxtccfg_t;
+//typedef struct _lxtcwin lxtcwin_t;
+//typedef struct _lxtctab lxtctab_t;
 
 // include all component headers here
-#include "cfg.h"
-#include "app.h"
-#include "win.h"
-#include "tab.h"
+//#include "cfg.h"
+//#include "app.h"
+//#include "win.h"
+//#include "tab.h"
 
 #define LXTERMC_NAME				"lxtermc"
 #define LXTERMC_APP_ID				"com.github.philostone." LXTERMC_NAME

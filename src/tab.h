@@ -3,22 +3,31 @@
 #define _LXTERMC_TAB_H_
 
 #include "lxtermc.h"
+#include "win.h"
 
 G_BEGIN_DECLS
 
 /* one terminal tab */
 
 #define LXTERMC_TYPE_TAB (lxtermc_tab_get_type())
+//G_DECLARE_FINAL_TYPE(LxtermcTab, lxtermc_tab, LXTERMC, TAB, GtkWidget)
 G_DECLARE_FINAL_TYPE(LxtermcTab, lxtermc_tab, LXTERMC, TAB, GtkWidget)
 
-GtkWidget *lxtermc_tab_new(lxtcwin_t *win, gchar *title);
+GtkWidget *lxtermc_tab_get_label(LxtermcTab *t);
+const gchar *lxtermc_tab_get_title(LxtermcTab *t);
 
-/* GDestroyNotify signature, *tab is of (GtkWidget *) */
-void lxtermc_tab_free(void *tab);
+int lxtermc_tab_get_rows(LxtermcTab *t);
+int lxtermc_tab_get_cols(LxtermcTab *t);
+
+/* GDestroyNotify signature, *ptr is of (LxtermcTab *) */
+void lxtermc_tab_free(void *ptr);
 
 /* GFunc signature */
 void lxtermc_tab_close(gpointer tab, gpointer data);
 
+LxtermcTab *lxtermc_tab_new(LxtermcWin *w, gchar *title);
+
+//GtkWidget *lxtermc_tab_new(LxtermcWin *win, gchar *title);
 /*
 typedef struct _lxtctab {
 	lxtcwin_t		*win;		// back ref to win struct

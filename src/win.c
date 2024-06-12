@@ -8,44 +8,101 @@
 #include <pwd.h>
 #include <vte/vte.h>
 
-#include "lxtermc.h"		// all components are included here
+#include "lxtermc.h"
+#include "app.h"
+#include "cfg.h"
+#include "tab.h"
 
-/* GDestroyNotify signature, *win is of type (lxtcwin_t *) */
+struct _LxtermcWin {
+	GtkWidget		parent_instance;
+
+	// subclass instance variabled
+	LxtermcApp		*app;		// back ref to main application instance
+	gchar			*id;		// win id string
+//	cmdargs_t		*cmdargs;	// ownership stealed from app
+	gchar			*title;		// window title
+	gchar			*cmd_tabs;	// comma separated list of tab titles
+	lxtccfg_t		*cfg;		// prefs for this window instance
+	GdkDisplay		*display;
+	GtkCssProvider		*provider;
+
+	// window components
+	GtkNotebook		*book;		// window child
+	GPtrArray		*tabs;		// LxtermcTab pointers
+	LxtermcTab		*visible_tab;
+	int			rows;		// vte pty number of rows
+	int			cols;		// and cols
+};
+
+G_DEFINE_TYPE(LxtermcWin, lxtermc_win, GTK_TYPE_APPLICATION_WINDOW)
+
 void
-lxtcwin_free(void *win)
+lxtermc_win_set_cmd_tabs(LxtermcWin *w, gchar *cmd_tabs)
 {
-	gchar *fn = "lxtcwin_free()";
-	lxtcwin_t *w = (lxtcwin_t *)win;
-	g_print("%s - '%s' - at: %p\n", fn, w->id, (void *)win);
+	gchar *fn = "lxtermc_win_set_cmd_tabs()";
+	g_print("%s", fn);
+	if (!cmd_tabs) g_print(" - cmd_tabs null pointer");
+	if (!w) g_print(" - win null pointer");
+	else w->cmd_tabs = cmd_tabs;
+	g_print("\n");
+}
+
+void
+lxtermc_win_set_cfg(LxtermcWin *w, lxtccfg_t *cfg)
+{
+	gchar *fn = "lxtermc_win_set_cfg()";
+	g_print("%s", fn);
+	if (cfg) g_print(" - cfg null pointer");
+	if (!w) g_print(" - win null pointer");
+	else w->cfg = cfg;
+	g_print("\n");
+}
+
+void
+lxtermc_win_set_title(LxtermcWin *w, gchar *title)
+{
+	gchar *fn = "lxtermc_win_set_title()";
+	g_print("%s", fn);
+	if (!title) g_print(" - title null pointer");
+	if (!w) g_print(" - win null pointer");
+	else w->title = title;
+	g_print("\n");
+}
+
+/* GDestroyNotify signature, *win is of type (LxtermcWin *) */
+void
+lxtermc_win_free(void *ptr)
+{
+	gchar *fn = "lxtermc_win_free()";
+	LxtermcWin *w = LXTERMC_WIN(ptr);
+	g_print("%s - '%s' - at: %p\n", fn, w->id, ptr);
 	g_free(w->id);
-	lxtermc_cmdargs_free(w->cmdargs);
+//	lxtermc_cmdargs_free(w->cmdargs);
 	lxtccfg_free(w->cfg);
-	g_ptr_array_free(w->tabs, TRUE); // calls lxtctab_free()
+	g_ptr_array_free(w->tabs, TRUE); // calls lxtermc_tab_free()
 	g_print("%s - end\n", fn);
 }
 
 /* GFunc signature - for passing to g_ptr_array_forech() */
-void lxtcwin_close(gpointer lxtcwin_ptr, gpointer data)
+void lxtermc_win_close(gpointer ptr, gpointer data)
 {
-	gchar *fn = "lxtcwin_close()";
-	lxtcwin_t *lxwin = (lxtcwin_t *)lxtcwin_ptr;
+	gchar *fn = "lxtermc_win_close()";
+	LxtermcWin *w = LXTERMC_WIN(ptr);
 	g_print("%s - '%s ', lxwin at: %p - data at: %p\n",
-		fn, lxwin->id, (void *)lxwin, (void *)data);
-	g_ptr_array_foreach(lxwin->tabs, lxtctab_close, NULL);
+		fn, w->id, (void *)w, (void *)data);
+	g_ptr_array_foreach(w->tabs, lxtermc_tab_close, NULL);
 	g_print("%s - end, passing task to gtk_window_close()\n", fn);
-	gtk_window_close(GTK_WINDOW(lxwin->win));
+	gtk_window_close(GTK_WINDOW(w));
 }
 
-/*
- * GTK_WINDOW:close-request signal handler
- * default handler is called afterwards (if return value is FALSE)
- */
+/* GTK_WINDOW:close-request signal handler
+ * default handler is called afterwards (if return value is FALSE) */
 gboolean
-lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin)
+lxtermc_win_close_request(GtkWindow *gwin, LxtermcWin *w)
 {
 	gchar *fn = "lxtcwin_close_request()";
 	g_print("%s - '%s' - gwin at: %p - lxwin at: %p\n",
-		fn, lxwin->id, (void *)gwin, (void *)lxwin);
+		fn, w->id, (void *)gwin, (void *)w);
 
 // Before doing this, make sure terminals are in closeable state, HOW ????
 // TODO: use gtk... close tabs etc...
@@ -54,109 +111,100 @@ lxtcwin_close_request(GtkWindow *gwin, lxtcwin_t *lxwin)
 }
 
 static void
-lxtcwin_new_tab(lxtcwin_t *win, const gchar *label)
+lxtermc_win_new_tab(LxtermcWin *w, const gchar *label)
 {
-	gchar *fn = "lxtcwin_new_tab()";
-	gchar *tabstr = (label) ? g_strdup(label) : g_strdup_printf("Tab %u", win->tabs->len+1);
+	gchar *fn = "lxtermc_win_new_tab()";
+	gchar *tabstr = (label) ? g_strdup(label) : g_strdup_printf("Tab %u", w->tabs->len+1);
 	g_print("%s - '%s -> creating '%s' - tabs at: %p\n",
-		fn, label, tabstr, (void *)win->tabs);
-	lxtctab_t *tab = lxtctab_new(win, tabstr);
-	g_ptr_array_add(win->tabs, tab);
-	gtk_notebook_append_page(win->notebook,
-		GTK_WIDGET(tab->scrollwin), GTK_WIDGET(tab->label));
+		fn, label, tabstr, (void *)w->tabs);
+	LxtermcTab *t = LXTERMC_TAB(lxtermc_tab_new(w, tabstr));
+	g_ptr_array_add(w->tabs, t);
+	gtk_notebook_append_page(w->book, GTK_WIDGET(t), lxtermc_tab_get_label(t));
 	g_free(tabstr);
 	g_print("%s - end\n", fn);
 }
 
 void
-lxtcwin_close_tab(lxtcwin_t *win, lxtctab_t *tab)
+lxtermc_win_close_tab(LxtermcWin *w, LxtermcTab *t)
 {
 	gchar *fn = "lxtcwin_close_tab()";
-	const gchar *str = gtk_label_get_text(tab->label);
+	const gchar *str = lxtermc_tab_get_title(t);
 	g_print("%s - '%s' at: %p - win: '%s' at: %p\n",
-		fn, str, (void *)tab, win->id, (void *)win);
-	int p = gtk_notebook_page_num(win->notebook, GTK_WIDGET(tab->scrollwin));
-	int n = gtk_notebook_get_n_pages(win->notebook);
+		fn, str, (void *)t, w->id, (void *)w);
+	int p = gtk_notebook_page_num(w->book, GTK_WIDGET(t));
+	int n = gtk_notebook_get_n_pages(w->book);
 	g_print("%s - remove page index: %i among %i pages\n", fn, p, n);
 	if (n < 1 || p < 0) {
 		g_print("%s - n: %i, p: %i - nothing to close - end\n", fn, n, p);
 		return;
 	}
-	if (!g_ptr_array_remove(win->tabs, tab)) { // calls lxtctab_free()
+	if (!g_ptr_array_remove(w->tabs, t)) { // calls lxtermc_tab_free()
 		g_print("%s - '%s' - tab pointer not found...\n", fn, str);
 	}
 	if (n < 2) {
 		g_print("%s - n: %i, closing the window - end\n", fn, n);
-		gtk_window_close(GTK_WINDOW(win->win));
+		gtk_window_close(GTK_WINDOW(w));
 		return;
 	}
-	gtk_notebook_remove_page(win->notebook, p);
+	gtk_notebook_remove_page(w->book, p);
 	g_print("%s - '%s' at: %p, removed from win '%s' at: %p\n",
-		fn, str, (void *)tab, win->id, (void *)win);
+		fn, str, (void *)t, w->id, (void *)w);
 
 	g_print("%s - end\n", fn);
 }
-/*
- * GTK_WINDOW - notify::default-[width|heigh] handler
- */
-static void
-lxtcwin_size(lxtcwin_t *win)
-{
-	gchar *fn = "lxtcwin_size()";
-	if (!win->notebook) { g_print("%s - notebook not filled yet\n", fn); return; }
-	int p = gtk_notebook_get_current_page(win->notebook);
-	if (p < 0) { g_print("%s - no pages in notebook\n", fn); return; }
-	if (!win->tabs || win->tabs->len < 1) { g_print("%s - no tabs in window\n", fn); return; }
-	if ((guint)p > win->tabs->len) { g_print("%s - more pages than tabs\n", fn); return; }
-	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, p);
 
-	int rows = vte_terminal_get_row_count(tab->vte);
-	int cols = vte_terminal_get_column_count(tab->vte);
-	if (win->rows != rows || win->cols != cols) {
+/* GTK_WINDOW - notify::default-[width|heigh] handler */
+static void
+lxtermc_win_size(LxtermcWin *w)
+{
+	gchar *fn = "lxtermc_win_size()";
+	if (!w->book) { g_print("%s - notebook not filled yet\n", fn); return; }
+	int p = gtk_notebook_get_current_page(w->book);
+	if (p < 0) { g_print("%s - no pages in notebook\n", fn); return; }
+	if (!w->tabs || w->tabs->len < 1) { g_print("%s - no tabs in window\n", fn); return; }
+	if ((guint)p > w->tabs->len) { g_print("%s - more pages than tabs\n", fn); return; }
+	LxtermcTab *t = LXTERMC_TAB(g_ptr_array_index(w->tabs, p));
+
+	int rows = lxtermc_tab_get_rows(t);
+	int cols = lxtermc_tab_get_cols(t);
+	if (w->rows != rows || w->cols != cols) {
 		g_print("%s - new pty size, %i x %i - end\n", fn, rows, cols);
-		win->rows = rows;
-		win->cols = cols;
+		w->rows = rows;
+		w->cols = cols;
 	} else {
 		g_print("%s - end\n", fn);
 	}
 }
 
-/*
- * GTK_WINDOW - notify::is-active handler
- */
+/* GTK_WINDOW - notify::is-active handler */
 static void
-lxtcwin_active(lxtcwin_t *win)
+lxtermc_win_active(LxtermcWin *w)
 {
-	gchar *fn = "lxtcwin_active()";
-	gboolean active = gtk_window_is_active(GTK_WINDOW(win->win));
-	g_print("%s - '%s' is active: %s\n", fn, win->id, ((active) ? "true" : "false"));
-
+	gchar *fn = "lxtermc_win_active()";
+	gboolean active = gtk_window_is_active(GTK_WINDOW(w));
+	g_print("%s - '%s' is active: %s\n", fn, w->id, ((active) ? "true" : "false"));
 }
 
-/*
- * GTK_NOTEBOOK:switch-page signal handler
- * default handler is called afterwards
- */
+/* GTK_NOTEBOOK:switch-page signal handler
+ * default handler is called afterwards */
 static void
-lxtcwin_tab_switched(GtkNotebook *nb, GtkWidget *wid, guint num, lxtcwin_t *win)
+lxtermc_win_tab_switched(GtkNotebook *book, GtkWidget *wid, guint num, LxtermcWin *w)
 {
-	gchar *fn = "lxtcwin_tab_switched()";
+	gchar *fn = "lxtermc_win_tab_switched()";
 //	if (page < 1) { g_print("%s - to nothing\n", fn); return; }
 //	if (gtk_notebook_get_n_pages(nb) < 1) { g_print("%s - to nothing\n", fn); return; }
 
-	g_print("%s - wid: %p, num: %i, win: %p\n",
-		fn, (void *)wid, num, (void *)win);
+	g_print("%s - wid: %p, num: %i, win: %p, book: %p\n",
+		fn, (void *)wid, num, (void *)w, (void *)book);
 
-	lxtctab_t *tab = (lxtctab_t *)g_ptr_array_index(win->tabs, num);
-
-	if ((void *)tab->scrollwin != (void *)wid) {
-		g_print("%s - notebook child mismatch, why? scrollwin: %p, wid: %p\n",
-			fn, (void *)tab->scrollwin, (void *)wid);
+	LxtermcTab *t = LXTERMC_TAB(g_ptr_array_index(w->tabs, num));
+	if ((void *)t != (void *)wid) {
+		g_print("%s - notebook child mismatch, why? lxtermctab: %p, wid: %p\n",
+			fn, (void *)t, (void *)wid);
 		return;
 	}
 
-	const gchar *str = gtk_label_get_text(tab->label);
-
+	const gchar *str = lxtermc_tab_get_title(t);
 	g_print("%s - switched to tab '%s'\n", fn, str);
 
 	// this does not work, probably because of default handler called afterwards...
@@ -167,71 +215,99 @@ lxtcwin_tab_switched(GtkNotebook *nb, GtkWidget *wid, guint num, lxtcwin_t *win)
 	g_print("%s - end\n", fn);
 }
 
-lxtcwin_t *
-lxtcwin_new(LxtermcApp *app, const gchar *id)
+void
+lxtermc_win_construct(LxtermcWin *w)
 {
-	gchar *fn = "lxtcwin_new()";
-	g_print("%s - '%s' - app at: %p\n", fn, id, (void *)app);
+	gchar *fn = "lxtermc_win_construct()";
+	g_print("%s - start\n", fn);
+	if (!w) {
+		g_print("%s - win null pointer\n", fn);
+		return;
+	}
 
-	/* lxtcwin_t initializations */
-	lxtcwin_t *win = g_new0(lxtcwin_t, 1);
-	win->app = app;
-	win->id = g_strdup(id);
-	win->cmdargs = lxtcapp_steal_cmdargs(app);
-	win->cfg = lxtccfg_load(win->cmdargs->cfg);
-	win->win = GTK_APPLICATION_WINDOW(gtk_application_window_new(GTK_APPLICATION(app)));
-	win->display = gdk_display_get_default();
-	win->provider = gtk_css_provider_new();
-	win->rows = 0;
-	win->cols = 0;
-	g_print("%s - new lxtcwin_t struct at: %p - gtkappwin at: %p\n",
-		fn, (void *)win, (void *)win->win);
+// ToDo: check if already constructed...
 
-	/* GtkNotebook initialization */
-	win->notebook = GTK_NOTEBOOK(gtk_notebook_new());
-	gtk_notebook_set_group_name(win->notebook, LXTERMC_NAME);
-	g_signal_connect(win->notebook, "switch-page",
-		G_CALLBACK(lxtcwin_tab_switched), win);
-
-	/* GptArray of (lxtctab_t *) initialization */
-	win->tabs = g_ptr_array_new_with_free_func(lxtctab_free);
-	g_print("%s - tabs at: %p\n", fn, (void *)win->tabs);
-	if (win->cmdargs->tabs) {
-		char *tabs = g_strdup(win->cmdargs->tabs);
+	if (w->cmd_tabs) {
+		char *tabs = g_strdup(w->cmd_tabs);
 		char *at = tabs;
 		char *next = NULL;
 		do {
 			if ((next = strchr(at, ','))) *next = '\0';
-			lxtcwin_new_tab(win, at);
+			lxtermc_win_new_tab(w, at);
 			if (next) at = next+1;
 		} while (next && *at);
 		g_free(tabs);
 	} else {
-		lxtcwin_new_tab(win, NULL);
+		lxtermc_win_new_tab(w, NULL);
 	}
 
-	/* GtkWindow initialization */
-	gtk_window_set_child(GTK_WINDOW(win->win), GTK_WIDGET(win->notebook));
-	gtk_window_set_title(GTK_WINDOW(win->win),
-		((win->cmdargs->title) ? win->cmdargs->title: LXTERMC_NAME));
-	gtk_window_set_default_size(GTK_WINDOW(win->win),
+	// final initializations
+	int p = gtk_notebook_get_current_page(w->book);
+	w->visible_tab = g_ptr_array_index(w->tabs, p);
+	const gchar *str = lxtermc_tab_get_title(w->visible_tab);
+	gtk_window_set_title(GTK_WINDOW(w),
+		((w->title) ? w->title: LXTERMC_NAME));
+
+// should be done by tab...
+//	if (!gtk_widget_grab_focus(GTK_WIDGET(w->visible_tab->vte))) {
+//		g_print("%s - vte failed to grab focus\n", fn);
+//	}
+	g_print("%s - current page is '%s' : %i\n", fn, str, p);
+	g_print("%s - end\n", fn);
+}
+
+static void
+lxtermc_win_class_init(LxtermcWinClass *c)
+{
+	gchar *fn = "lxtermc_win_class_init()";
+	g_print("%s - at: %p\n", fn, (void *)c);
+}
+
+static void
+lxtermc_win_init(LxtermcWin *w)
+{
+	gchar *fn = "lxtermc_win_init()";
+	g_print("%s - start\n", fn);
+
+	// initializations
+	w->display = gdk_display_get_default();
+	w->provider = gtk_css_provider_new();
+	w->rows = 0;
+	w->cols = 0;
+	g_print("%s - new LxtermcWin at: %p\n", fn, (void *)w);
+
+	// GtkNotebook initialization
+	w->book = GTK_NOTEBOOK(gtk_notebook_new());
+	gtk_notebook_set_group_name(w->book, LXTERMC_NAME);
+	g_signal_connect(w->book, "switch-page",
+		G_CALLBACK(lxtermc_win_tab_switched), w);
+
+	// GptArray of (LxtermcTab *) initialization
+	w->tabs = g_ptr_array_new_with_free_func(lxtermc_tab_free);
+
+	// GtkWindow initialization
+	gtk_window_set_child(GTK_WINDOW(w), GTK_WIDGET(w->book));
+	gtk_window_set_default_size(GTK_WINDOW(w),
 		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
-	g_signal_connect(GTK_WINDOW(win->win), "close-request",
-		G_CALLBACK(lxtcwin_close_request), win);
-	g_signal_connect_swapped(GTK_WINDOW(win->win), "notify::default-width",
-		G_CALLBACK(lxtcwin_size), win);
-	g_signal_connect_swapped(GTK_WINDOW(win->win), "notify::default-height",
-		G_CALLBACK(lxtcwin_size), win);
-	g_signal_connect_swapped(GTK_WINDOW(win->win), "notify::is-active",
-		G_CALLBACK(lxtcwin_active), win);
+	g_signal_connect(GTK_WINDOW(w), "close-request",
+		G_CALLBACK(lxtermc_win_close_request), w);
+	g_signal_connect_swapped(GTK_WINDOW(w), "notify::default-width",
+		G_CALLBACK(lxtermc_win_size), w);
+	g_signal_connect_swapped(GTK_WINDOW(w), "notify::default-height",
+		G_CALLBACK(lxtermc_win_size), w);
+	g_signal_connect_swapped(GTK_WINDOW(w), "notify::is-active",
+		G_CALLBACK(lxtermc_win_active), w);
+	g_print("%s - end\n", fn);
+}
 
-	/* final initializations */
-	int page = gtk_notebook_get_current_page(win->notebook);
-	win->visible_tab = g_ptr_array_index(win->tabs, page);
-	const gchar *str = gtk_label_get_text(win->visible_tab->label);
-	if (!gtk_widget_grab_focus(GTK_WIDGET(win->visible_tab->vte))) {
-		g_print("%s - vte failed to grab focus\n", fn);
-	}
-	g_print("%s - current page is '%s' : %i\n", fn, str, page);
-	return win;
+LxtermcWin *
+lxtermc_win_new(LxtermcApp *a, const gchar *id)
+{
+	gchar *fn = "lxtermc_win_new()";
+	g_print("%s - app at: %p, id: %s\n", fn, (void *)a, id);
+	LxtermcWin *w = g_object_new(LXTERMC_TYPE_WIN, NULL);
+	w->app = a;
+	w->id = g_strdup(id);
+	g_print("%s - end\n", fn);
+	return w;
 }

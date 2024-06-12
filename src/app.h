@@ -4,12 +4,13 @@
 #define _LXTERMCAPP_H_
 
 #include "lxtermc.h"
+#include "app.h"
 
 G_BEGIN_DECLS
 
 #define LXTERMC_TYPE_APP (lxtermc_app_get_type())
 
-/* macro below defined in gobject/gtype.h - expands to the following:
+/* macro below defined in /usr/include/glib-2.0/gobject/gtype.h - expands to the following:
  *	GType lxtermc_app_get_type(void);
  *	G_GNUC_BEGIN_IGNORE_DEPRECATIONS --> _Pragma push disable:1478
  *	typedef struct _LxtermcApp LxtermcApp;
@@ -27,9 +28,8 @@ G_BEGIN_DECLS
  * whare params are: ModuleObjName  module_obj_name MODULE   OBJ_NAME  ParentName */
 G_DECLARE_FINAL_TYPE(LxtermcApp,    lxtermc_app,    LXTERMC, APP,      GtkApplication)
 
-//LxtermcApp *lxtermc_app_new();
-GtkWidget *lxtermc_app_new();
-cmdargs_t *lxtcapp_steal_cmdargs(LxtermcApp *app);
+LxtermcApp *lxtermc_app_new();
+//cmdargs_t *lxtermc_app_steal_cmdargs(LxtermcApp *app);
 
 G_END_DECLS
 

@@ -11,7 +11,8 @@
 #include <glib-unix.h>		// signals handling
 //#include <X11/Xlib.h>
 
-#include "lxtermc.h"		// all components are included here
+#include "lxtermc.h"
+#include "app.h"
 
 gchar lxtermc_usage[] = {
 	"lxtermc - is a per window individually configurable terminal emulator\n"
@@ -68,6 +69,7 @@ lxtermc_is_opt(int argc, char **argv, int *at, char **opt_arg, int num_optids, .
 			}
 			if (*opt_arg) {
 				g_free(*opt_arg);
+				*opt_arg = NULL;
 				g_print(", earlier option argument had to be freed, why?");
 			}
 			*opt_arg = g_strdup(argv[*at]+l+1);
@@ -181,19 +183,12 @@ lxtermc_cmdargs_free(cmdargs_t *cargs)
 		g_print("%s - NULL pointer, nothing is freed...\n", fn);
 		return;
 	}
-
-	// *cargs is pointer to cmdargs_t struct
-	// (*cargs)->exe is pointer to char
-	// &((*cargs)->exe) is pointer to the pointer to the char
 	lxtermc_free_str_at(&cargs->exec);
 	lxtermc_free_str_at(&cargs->cfg);
 	lxtermc_free_str_at(&cargs->title);
 	lxtermc_free_str_at(&cargs->tabs);
-
-////	g_ptr_array_foreach((*cargs)->tabs, lxtc_gfunc_free, NULL);
-//	g_ptr_array_free((*cargs)->tabs, TRUE);
 	lxtermc_free_str_at(&cargs->locale);
-//	*cargs = NULL;
+	g_print("%s - end!\n", fn);
 }
 
 static gint
@@ -263,18 +258,18 @@ main(int argc, char **argv)
 
 //	LxtermcApp *app = lxtermc_app_new("= main app =");
 //	LxtermcApp *app = lxtermc_app_new();
-	GtkWidget *app = lxtermc_app_new();
-	g_print("%s - app at: %p - starting main application loop ...\n", fn, (void *)app);
+	GtkWidget *w = GTK_WIDGET(lxtermc_app_new());
+	g_print("%s - app at: %p - starting main application loop ...\n", fn, (void *)w);
 
-	g_unix_signal_add(SIGHUP, handle_sighup, app);
-	g_unix_signal_add(SIGINT, handle_sigint, app);
-	g_unix_signal_add(SIGTERM, handle_sigterm, app);
-	g_unix_signal_add(SIGUSR1, handle_sigusr1, app);
-	g_unix_signal_add(SIGUSR2, handle_sigusr2, app);
-	g_unix_signal_add(SIGWINCH, handle_sigwinch, app);
+	g_unix_signal_add(SIGHUP, handle_sighup, w);
+	g_unix_signal_add(SIGINT, handle_sigint, w);
+	g_unix_signal_add(SIGTERM, handle_sigterm, w);
+	g_unix_signal_add(SIGUSR1, handle_sigusr1, w);
+	g_unix_signal_add(SIGUSR2, handle_sigusr2, w);
+	g_unix_signal_add(SIGWINCH, handle_sigwinch, w);
 
-	int gtk_status = g_application_run(G_APPLICATION(app), argc, argv);
-	g_object_unref(app);
+	int gtk_status = g_application_run(G_APPLICATION(w), argc, argv);
+	g_object_unref(w);
 
 	g_print("%s - end! - status: %i\n", fn, gtk_status);
 	return gtk_status;
