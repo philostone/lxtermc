@@ -4,7 +4,6 @@
 #define _LXTERMCAPP_H_
 
 #include "lxtermc.h"
-#include "app.h"
 
 G_BEGIN_DECLS
 

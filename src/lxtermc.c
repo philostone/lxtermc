@@ -17,6 +17,8 @@
 gchar lxtermc_usage[] = {
 	"lxtermc - is a per window individually configurable terminal emulator\n"
 	"\n"
+	"config priority: command line provided, user's global, system's global\n"
+	"\n"
 	"usage:\n"
 	"\n"
 	"  lxtermc [options ...]\n"
@@ -77,7 +79,7 @@ lxtermc_is_opt(int argc, char **argv, int *at, char **opt_arg, int num_optids, .
 			break;
 		}
 
-		// not a match, after all ...
+		// not a match, after all ... TODO: can this ever happen ????????????
 		if (*(argv[*at]+l) != '\0') {
 			opt = NULL;
 			continue;
@@ -97,7 +99,11 @@ lxtermc_is_opt(int argc, char **argv, int *at, char **opt_arg, int num_optids, .
 			*at = -1;
 			break;
 		}
-		if (*opt_arg) g_free(*opt_arg);
+		if (*opt_arg) { // TODO: can this ever happen ?????????
+			g_free(*opt_arg);
+			*opt_arg = NULL;
+			g_print(", earlier option argument had to be freed, why?");
+		}
 		*opt_arg = g_strdup(argv[*at]);
 		g_print(": %s\n", *opt_arg);
 		break;

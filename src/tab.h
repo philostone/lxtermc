@@ -10,7 +10,6 @@ G_BEGIN_DECLS
 /* one terminal tab */
 
 #define LXTERMC_TYPE_TAB (lxtermc_tab_get_type())
-//G_DECLARE_FINAL_TYPE(LxtermcTab, lxtermc_tab, LXTERMC, TAB, GtkWidget)
 G_DECLARE_FINAL_TYPE(LxtermcTab, lxtermc_tab, LXTERMC, TAB, GtkWidget)
 
 GtkWidget *lxtermc_tab_get_label(LxtermcTab *t);
@@ -24,6 +23,8 @@ void lxtermc_tab_free(void *ptr);
 
 /* GFunc signature */
 void lxtermc_tab_close(gpointer tab, gpointer data);
+
+void lxtermc_tab_construct(LxtermcTab *t);
 
 LxtermcTab *lxtermc_tab_new(LxtermcWin *w, gchar *title);
 

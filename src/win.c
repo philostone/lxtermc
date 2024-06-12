@@ -51,8 +51,7 @@ void
 lxtermc_win_set_cfg(LxtermcWin *w, lxtccfg_t *cfg)
 {
 	gchar *fn = "lxtermc_win_set_cfg()";
-	g_print("%s", fn);
-	if (cfg) g_print(" - cfg null pointer");
+	g_print("%s - to struct at: %p", fn, (void *)cfg);
 	if (!w) g_print(" - win null pointer");
 	else w->cfg = cfg;
 	g_print("\n");
@@ -62,8 +61,7 @@ void
 lxtermc_win_set_title(LxtermcWin *w, gchar *title)
 {
 	gchar *fn = "lxtermc_win_set_title()";
-	g_print("%s", fn);
-	if (!title) g_print(" - title null pointer");
+	g_print("%s - at: %p - to '%s'", fn, (void *)w, title);
 	if (!w) g_print(" - win null pointer");
 	else w->title = title;
 	g_print("\n");
@@ -115,9 +113,10 @@ lxtermc_win_new_tab(LxtermcWin *w, const gchar *label)
 {
 	gchar *fn = "lxtermc_win_new_tab()";
 	gchar *tabstr = (label) ? g_strdup(label) : g_strdup_printf("Tab %u", w->tabs->len+1);
-	g_print("%s - '%s -> creating '%s' - tabs at: %p\n",
-		fn, label, tabstr, (void *)w->tabs);
-	LxtermcTab *t = LXTERMC_TAB(lxtermc_tab_new(w, tabstr));
+	g_print("%s - at:%p - label: '%s' -> creating '%s' - tabs at: %p\n",
+		fn, (void *)w, label, tabstr, (void *)w->tabs);
+	LxtermcTab *t = lxtermc_tab_new(w, tabstr);
+	lxtermc_tab_construct(t);
 	g_ptr_array_add(w->tabs, t);
 	gtk_notebook_append_page(w->book, GTK_WIDGET(t), lxtermc_tab_get_label(t));
 	g_free(tabstr);
@@ -204,6 +203,7 @@ lxtermc_win_tab_switched(GtkNotebook *book, GtkWidget *wid, guint num, LxtermcWi
 		return;
 	}
 
+	w->visible_tab = t;
 	const gchar *str = lxtermc_tab_get_title(t);
 	g_print("%s - switched to tab '%s'\n", fn, str);
 
@@ -219,11 +219,15 @@ void
 lxtermc_win_construct(LxtermcWin *w)
 {
 	gchar *fn = "lxtermc_win_construct()";
-	g_print("%s - start\n", fn);
-	if (!w) {
-		g_print("%s - win null pointer\n", fn);
-		return;
-	}
+	if (!w) g_print("%s - win null pointer\n", fn);
+	g_print("%s - at: %p - start\n", fn, (void *)w);
+
+	// GtkNotebook initialization
+	w->book = GTK_NOTEBOOK(gtk_notebook_new());
+	gtk_notebook_set_group_name(w->book, LXTERMC_NAME);
+	g_signal_connect(w->book, "switch-page",
+		G_CALLBACK(lxtermc_win_tab_switched), w);
+	gtk_window_set_child(GTK_WINDOW(w), GTK_WIDGET(w->book));
 
 // ToDo: check if already constructed...
 
@@ -257,36 +261,51 @@ lxtermc_win_construct(LxtermcWin *w)
 }
 
 static void
+lxtermc_win_dispose(GObject *obj)
+{
+	gchar *fn = "lxtermc_win_dispose()";
+	g_print("%s - at: %p - start & end, handing over to parent...\n", fn, (void *)obj);
+	G_OBJECT_CLASS(lxtermc_win_parent_class)->dispose(obj);
+}
+
+static void
+lxtermc_win_finalize(GObject *obj)
+{
+	gchar *fn = "lxtermc_win_finalize()";
+	g_print("%s - at: %p - start & end, handing over to parent...\n", fn, (void *)obj);
+	G_OBJECT_CLASS(lxtermc_win_parent_class)->finalize(obj);
+}
+
+static void
 lxtermc_win_class_init(LxtermcWinClass *c)
 {
 	gchar *fn = "lxtermc_win_class_init()";
-	g_print("%s - at: %p\n", fn, (void *)c);
+	g_print("%s - at: %p - start\n", fn, (void *)c);
+
+	// virtual function overrides
+	G_OBJECT_CLASS(c)->dispose = lxtermc_win_dispose;
+	G_OBJECT_CLASS(c)->finalize = lxtermc_win_finalize;
+
+	// property and signal definitions
+	g_print("%s - at: %p - end\n", fn, (void *)c);
 }
 
 static void
 lxtermc_win_init(LxtermcWin *w)
 {
 	gchar *fn = "lxtermc_win_init()";
-	g_print("%s - start\n", fn);
+	g_print("%s - at: %p - start\n", fn, (void *)w);
 
 	// initializations
 	w->display = gdk_display_get_default();
 	w->provider = gtk_css_provider_new();
 	w->rows = 0;
 	w->cols = 0;
-	g_print("%s - new LxtermcWin at: %p\n", fn, (void *)w);
-
-	// GtkNotebook initialization
-	w->book = GTK_NOTEBOOK(gtk_notebook_new());
-	gtk_notebook_set_group_name(w->book, LXTERMC_NAME);
-	g_signal_connect(w->book, "switch-page",
-		G_CALLBACK(lxtermc_win_tab_switched), w);
 
 	// GptArray of (LxtermcTab *) initialization
 	w->tabs = g_ptr_array_new_with_free_func(lxtermc_tab_free);
 
 	// GtkWindow initialization
-	gtk_window_set_child(GTK_WINDOW(w), GTK_WIDGET(w->book));
 	gtk_window_set_default_size(GTK_WINDOW(w),
 		LXTERMC_DEFAULT_WIDTH, LXTERMC_DEFAULT_HEIGHT);
 	g_signal_connect(GTK_WINDOW(w), "close-request",
@@ -297,7 +316,7 @@ lxtermc_win_init(LxtermcWin *w)
 		G_CALLBACK(lxtermc_win_size), w);
 	g_signal_connect_swapped(GTK_WINDOW(w), "notify::is-active",
 		G_CALLBACK(lxtermc_win_active), w);
-	g_print("%s - end\n", fn);
+	g_print("%s - at: %p - end\n", fn, (void *)w);
 }
 
 LxtermcWin *
@@ -308,6 +327,6 @@ lxtermc_win_new(LxtermcApp *a, const gchar *id)
 	LxtermcWin *w = g_object_new(LXTERMC_TYPE_WIN, NULL);
 	w->app = a;
 	w->id = g_strdup(id);
-	g_print("%s - end\n", fn);
+	g_print("%s - at: %p - end\n", fn, (void *)w);
 	return w;
 }

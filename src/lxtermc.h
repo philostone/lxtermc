@@ -25,6 +25,7 @@ typedef struct _LxtermcApp LxtermcApp;
 //#include "tab.h"
 
 #define LXTERMC_NAME				"lxtermc"
+#define LXTERMC_BASE				"/com/github/philostone/" LXTERMC_NAME "/"
 #define LXTERMC_APP_ID				"com.github.philostone." LXTERMC_NAME
 #define LXTERMC_DEFAULT_LOCALE			"sv_SE.utf8"
 

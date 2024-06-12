@@ -14,8 +14,10 @@
 struct _LxtermcTab {
 	GtkWidget parent_instance;
 	
-//	lxtcwin_t		*win;		// back ref to win struct
-	LxtermcWin		*win;		// back ref to win struct
+	// subclass instance variables
+	LxtermcWin		*win;		// back ref to win instance
+
+	// ToDo: make LxtermcTab the child widget of GtkNotebook
 	GtkScrolledWindow	*scrollwin;	// child of GtkNotebook
 	GtkLabel		*label;
 	VteTerminal		*vte;
@@ -146,28 +148,30 @@ lxtctab_hide(GtkWidget *wid, gpointer *unknown, gpointer *tab)
 }
 */
 
-// TODO: rewrite to child init structure...
-
 static void
-lxtermc_tab_class_init(LxtermcTabClass *c)
+lxtermc_tab_dispose(GObject *obj)
 {
-	gchar *fn = "lxtermc_tab_class_init()";
-	g_print("%s - class at: %p\n", fn, (void *)c);
+	gchar *fn = "lxtermc_tab_dispose()";
+	g_print("%s - at: %p - start & end, handing over to parent...\n", fn, (void *)obj);
+	G_OBJECT_CLASS(lxtermc_tab_parent_class)->dispose(obj);
 }
 
 static void
-lxtermc_tab_init(LxtermcTab *t)
+lxtermc_tab_finalize(GObject *obj)
 {
-	gchar *fn = "lxtermc_tab_init()";
-	g_print("%s - start\n", fn);
+	gchar *fn = "lxtermc_tab_finalize()";
+	g_print("%s - at: %p - start & end, handing over to parent...\n", fn, (void *)obj);
+	G_OBJECT_CLASS(lxtermc_tab_parent_class)->finalize(obj);
+}
 
-	// initializations
+void lxtermc_tab_construct(LxtermcTab *t)
+{
+	gchar *fn = "lxtermc_tab_construct()";
+	g_print("%s - at: %p - start\n", fn, (void *)t);
+
+	// initialize components
 	t->scrollwin = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new());
 	t->vte = VTE_TERMINAL(vte_terminal_new());
-
-	// set up terminal properties
-	vte_terminal_set_size(t->vte, 20, 20);
-	vte_terminal_set_scrollback_lines(t->vte, 100);
 
 	g_signal_connect(t->vte, "child-exited",
 		G_CALLBACK(lxtermc_tab_child_exited), t);
@@ -177,6 +181,10 @@ lxtermc_tab_init(LxtermcTab *t)
 	// construct main widget
 	gtk_scrolled_window_set_child(t->scrollwin, GTK_WIDGET(t->vte));
 	gtk_scrolled_window_set_policy(t->scrollwin, GTK_POLICY_AUTOMATIC, GTK_POLICY_ALWAYS);
+
+	// set up terminal properties
+	vte_terminal_set_size(t->vte, 20, 20);
+	vte_terminal_set_scrollback_lines(t->vte, 100);
 
 	gchar **exec = g_malloc(3*sizeof(gchar *));
 	exec[0] = g_strdup(lxtermc_tab_preferred_shell());
@@ -209,6 +217,33 @@ lxtermc_tab_init(LxtermcTab *t)
 
 	// makes all tabs exit if eof is typed, why?
 	//	vte_terminal_feed(VTE_TERMINAL(tab->vte), "lxtermc\n", 8);
+	g_print("%s - at: %p - end\n", fn, (void *)t);
+}
+
+static void
+lxtermc_tab_class_init(LxtermcTabClass *c)
+{
+	gchar *fn = "lxtermc_tab_class_init()";
+	g_print("%s - at: %p - start\n", fn, (void *)c);
+
+	// virtual function overrides
+	G_OBJECT_CLASS(c)->dispose = lxtermc_tab_dispose;
+	G_OBJECT_CLASS(c)->finalize = lxtermc_tab_finalize;
+
+	// property and signal definitions
+	g_print("%s - at: %p - end\n", fn, (void *)c);
+}
+
+static void
+lxtermc_tab_init(LxtermcTab *t)
+{
+	gchar *fn = "lxtermc_tab_init()";
+	g_print("%s - at: %p - start\n", fn, (void *)t);
+
+	GtkLayoutManager *l = gtk_widget_get_layout_manager(GTK_WIDGET(t));
+	g_print("%s - at: %p - layoutmanager at: %p\n", fn, (void *)t, (void *)l);
+
+	g_print("%s - at: %p - end\n", fn, (void *)t);
 }
 
 /*
