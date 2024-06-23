@@ -324,7 +324,9 @@ lxtermc_win_new(LxtermcApp *a, const gchar *id)
 {
 	gchar *fn = "lxtermc_win_new()";
 	g_print("%s - app at: %p, id: %s\n", fn, (void *)a, id);
-	LxtermcWin *w = g_object_new(LXTERMC_TYPE_WIN, NULL);
+	LxtermcWin *w = g_object_new(LXTERMC_TYPE_WIN,
+		"application", GTK_APPLICATION(a),
+		NULL);
 	w->app = a;
 	w->id = g_strdup(id);
 	g_print("%s - at: %p - end\n", fn, (void *)w);
